@@ -136,7 +136,7 @@ VPATH+= $(TOP)/3rd_party/edge_impulse/tflite-model
 VPATH+= $(TOP)/3rd_party/edge_impulse/model-parameters
 
 
-SRC = main.c
+SRC = main.cpp
 SRC+= ei_classifier_porting.cpp
 SRC+= debug_log.cc
 SRC+= eta_bsp.c

@@ -51,7 +51,7 @@ gcc:
 	@echo "Make gcc here"
 	! test -d $(GCC_DIR) || $(MAKE) -C gcc
 	@echo
-	@echo "...GCC compilation finished"
+	@echo "...GCC compilation finished (gcc/flash/bin/edge_impulse.bin)"
 	@echo
 
 keil:
