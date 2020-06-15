@@ -1,0 +1,4 @@
+utensor/CMakeFiles/
+tensorflow/lite/micro/mbed/
+porting/posix/
+classifier/ei_run_classifier_c*
