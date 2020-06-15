@@ -22,6 +22,7 @@
  *
  ******************************************************************************/
 
+#include <stdio.h>
 #include "eta_bsp.h"
 #include "ei_run_classifier.h"
 
@@ -83,6 +84,7 @@ main(void)
     while (1) {
 
         EtaUtilsStdioPrintf("Edge Impulse standalone inferencing (Eta Compute ECM3532)\n");
+        ei_printf("%F\n", 3.21f);
 
         if (sizeof(features) / sizeof(float) != EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE) {
             EtaUtilsStdioPrintf("The size of your 'features' array is not correct. Expected %d items, but had %u\n",
@@ -109,7 +111,7 @@ main(void)
         // print the predictions
         EtaUtilsStdioPrintf("[");
         for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
-            EtaUtilsStdioPrintf("%.5f", result.classification[ix].value);
+            EtaUtilsStdioPrintf("%d", static_cast<int>(result.classification[ix].value) * 1000);
     #if EI_CLASSIFIER_HAS_ANOMALY == 1
             EtaUtilsStdioPrintf(", ");
     #else
@@ -119,7 +121,7 @@ main(void)
     #endif
         }
     #if EI_CLASSIFIER_HAS_ANOMALY == 1
-        EtaUtilsStdioPrintf("%.3f", result.anomaly);
+        EtaUtilsStdioPrintf("%d", static_cast<int>(result.anomaly) * 1000);
     #endif
         EtaUtilsStdioPrintf("]\n");
 
