@@ -89,4 +89,3 @@ extern void EtaUtilsStdioFreqPutS(tUart *psUart, uint32_t ui32Freq);
 #endif // __ETA_UTILS_STDIO_H__
 
 /** @}*/
-

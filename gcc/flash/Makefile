@@ -24,12 +24,12 @@
 
 TOP = ../..
 
-PROJECT_NAME = static_buffer
+PROJECT_NAME = edge_impulse_inferencing
 
 CPU = cortex-m3
 
-LINKER_SCRIPT =	ecm3532.ld
-STARTUP_FILE = startup_gcc.c
+LINKER_SCRIPT =	../ecm3532.ld
+STARTUP_FILE = ../startup_gcc.c
 
 COMPILER = arm-none-eabi
 
@@ -40,7 +40,7 @@ AR = $(COMPILER)-ar
 CP = $(COMPILER)-objcopy
 OD = $(COMPILER)-objdump
 
-DEFINES = -DECM3532 -DFLASH -DEIDSP_USE_CMSIS_DSP=1 -DEI_CLASSIFIER_TFLITE_ENABLE_CMSIS_NN=1 -DPROJ_NAME=\"static_buffer\"
+DEFINES = -DECM3532 -DFLASH -DEIDSP_USE_CMSIS_DSP=1 -DEI_CLASSIFIER_TFLITE_ENABLE_CMSIS_NN=1 -DPRINTF_SUPPORT_FLOAT -DPROJ_NAME=\"edge_impulse_inferencing\"
 
 INCLUDES = -I../../inc
 INCLUDES+= -I$(TOP)/soc/ecm3532/m3/reg/inc
@@ -145,7 +145,7 @@ SRC+= eta_bsp_power.c
 SRC+= eta_utils_stdio.c
 SRC+= eta_utils_state.c
 SRC+= printf.c
-SRC+= startup_gcc.c
+SRC+= ../startup_gcc.c
 SRC+= memory.cpp
 SRC+= kiss_fft.cpp
 SRC+= kiss_fftr.cpp
@@ -178,17 +178,17 @@ LIBS+=
 ##### Options #####
 OPTS =	-mthumb -mcpu=$(CPU) -mlittle-endian -fmessage-length=0 -fsigned-char
 OPTS+= -ffunction-sections -fdata-sections -g3 -fno-common -MMD -MP -Werror
-OPTS+= -O3
+OPTS+= -Ofast
 OPTS+= $(DEFINES)
 OPTS+= $(INCLUDES)
 
 CC_OPTS = -std=gnu11
 CXX_OPTS = -std=c++11 -U__STRICT_ANSI__
 
-LD_OPTS	= -mthumb -mcpu=$(CPU) -mlittle-endian -O3
+LD_OPTS	= -mthumb -mcpu=$(CPU) -mlittle-endian -Ofast
 LD_OPTS+= -fsigned-char -ffunction-sections -fdata-sections -g3 -fno-common
 LD_OPTS+= -nostartfiles -static --specs=nosys.specs -fmessage-length=0 -flto
-LD_OPTS+= -v -Xlinker -Map=bin/sleep.map -Wl,--gc-sections
+LD_OPTS+= -v -Xlinker -Map=bin/edge_impulse_audio.map -Wl,--gc-sections
 LD_OPTS+= -Wl,--start-group $(LIBS) -Wl,--end-group
 
 CP_OPTS = --verbose -Obinary

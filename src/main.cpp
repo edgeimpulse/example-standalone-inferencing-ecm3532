@@ -65,11 +65,13 @@ main(void)
 {
     // Initialize and power up.
     EtaBspInit();
-    EtaCspBuckM3FrequencySet(20000, eBuckStableWait);
+    EtaCspBuckM3FrequencySet(60000, eBuckStableWait);
     EtaUtilsStdioTerminalClear();
 
     while (1) {
         EtaUtilsStdioPrintf("Edge Impulse standalone inferencing (Eta Compute ECM3532)\n");
+        float v = 3.21f;
+        EtaUtilsStdioPrintf("Here's a float: %f\n", v);
 
         if (sizeof(features) / sizeof(float) != EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE) {
             EtaUtilsStdioPrintf("The size of your 'features' array is not correct. Expected %d items, but had %u\n",

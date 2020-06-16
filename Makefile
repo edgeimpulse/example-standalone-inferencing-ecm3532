@@ -85,3 +85,5 @@ clean:
 	@for i in ${SUBDIRS}; do \
 		$(MAKE) -C $${i} $@ || exit $? ;\
 	done
+
+	rm -r build/

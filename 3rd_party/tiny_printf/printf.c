@@ -61,7 +61,7 @@
 // support for the floating point type (%f)
 // default: activated
 #ifndef PRINTF_DISABLE_SUPPORT_FLOAT
-#define PRINTF_SUPPORT_FLOAT
+// #define PRINTF_SUPPORT_FLOAT
 #endif
 
 // support for the long long types (%llu or %p)
@@ -763,4 +763,3 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
   va_end(va);
   return ret;
 }
-

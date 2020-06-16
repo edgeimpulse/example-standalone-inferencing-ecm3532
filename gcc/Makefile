@@ -31,6 +31,8 @@ SUBDIRS := $(dir $(wildcard */[Mm]akefile))
 all realclean clean: $(SUBDIRS)
 	@echo "Completed gcc make"
 $(SUBDIRS):
+	mkdir -p ../build
 	$(MAKE) -C $@ $(MAKECMDGOALS)
+	cp $@/bin/*.bin ../build/
+	cp $@/bin/*.elf ../build/
 .PHONY: $(SUBDIRS) all realclean clean
-
