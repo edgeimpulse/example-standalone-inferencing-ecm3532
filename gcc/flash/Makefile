@@ -178,14 +178,14 @@ LIBS+=
 ##### Options #####
 OPTS =	-mthumb -mcpu=$(CPU) -mlittle-endian -fmessage-length=0 -fsigned-char
 OPTS+= -ffunction-sections -fdata-sections -g3 -fno-common -MMD -MP -Werror
-OPTS+= -Ofast
+OPTS+= -O0
 OPTS+= $(DEFINES)
 OPTS+= $(INCLUDES)
 
 CC_OPTS = -std=gnu11
 CXX_OPTS = -std=c++11 -U__STRICT_ANSI__
 
-LD_OPTS	= -mthumb -mcpu=$(CPU) -mlittle-endian -Ofast
+LD_OPTS	= -mthumb -mcpu=$(CPU) -mlittle-endian -O0
 LD_OPTS+= -fsigned-char -ffunction-sections -fdata-sections -g3 -fno-common
 LD_OPTS+= -nostartfiles -static --specs=nosys.specs -fmessage-length=0 -flto
 LD_OPTS+= -v -Xlinker -Map=bin/edge_impulse_audio.map -Wl,--gc-sections
@@ -224,8 +224,11 @@ bin/$(PROJECT_NAME).elf : $(OBJS) $(LIBS)
 
 bin/$(PROJECT_NAME).bin: bin/$(PROJECT_NAME).elf
 	@echo " Copying $@..." ;\
+	mkdir -p ../../build/
 	$(CP) $(CP_OPTS) $< $@ ;\
 	$(OD) $(OD_OPTS) $< > bin/$(PROJECT_NAME).txt
+	cp bin/*.bin ../../build/
+	cp bin/*.elf ../../build/
 
 realclean clean:
 	rm -f $(OBJS) $(DEPS) \

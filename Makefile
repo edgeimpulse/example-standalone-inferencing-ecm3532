@@ -51,31 +51,7 @@ gcc:
 	@echo "Make gcc here"
 	! test -d $(GCC_DIR) || $(MAKE) -C gcc
 	@echo
-	@echo "...GCC compilation finished (gcc/flash/bin/edge_impulse.bin)"
-	@echo
-
-keil:
-	@echo
-	@echo "Building Keil..."
-	! test -d $(KEIL_DIR) || $(MAKE) -C keil
-	@echo
-	@echo "...Keil compilation finished"
-	@echo
-
-iar:
-	@echo
-	@echo "Building IAR..."
-	! test -d $(IAR_DIR) || $(MAKE) -C iar
-	@echo
-	@echo "...IAR compilation finished"
-	@echo
-
-es:
-	@echo
-	@echo "Building Embedded Studio..."
-	! test -d $(ES_DIR) || $(MAKE) -C embedded_studio
-	@echo
-	@echo "...Embedded Studio compilation finished"
+	@echo "...GCC compilation finished (see the build/ folder)"
 	@echo
 
 #
