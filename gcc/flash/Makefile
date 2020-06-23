@@ -178,14 +178,14 @@ LIBS+=
 ##### Options #####
 OPTS =	-mthumb -mcpu=$(CPU) -mlittle-endian -fmessage-length=0 -fsigned-char
 OPTS+= -ffunction-sections -fdata-sections -g3 -fno-common -MMD -MP -Werror
-OPTS+= -O0
+OPTS+= -O3
 OPTS+= $(DEFINES)
 OPTS+= $(INCLUDES)
 
 CC_OPTS = -std=gnu11
 CXX_OPTS = -std=c++11 -U__STRICT_ANSI__
 
-LD_OPTS	= -mthumb -mcpu=$(CPU) -mlittle-endian -O0
+LD_OPTS	= -mthumb -mcpu=$(CPU) -mlittle-endian -O3
 LD_OPTS+= -fsigned-char -ffunction-sections -fdata-sections -g3 -fno-common
 LD_OPTS+= -nostartfiles -static --specs=nosys.specs -fmessage-length=0 -flto
 LD_OPTS+= -v -Xlinker -Map=bin/edge_impulse_audio.map -Wl,--gc-sections
