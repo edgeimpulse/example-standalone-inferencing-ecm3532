@@ -40,7 +40,7 @@ AR = $(COMPILER)-ar
 CP = $(COMPILER)-objcopy
 OD = $(COMPILER)-objdump
 
-DEFINES = -DECM3532 -DFLASH -DEIDSP_USE_CMSIS_DSP=1 -DEI_CLASSIFIER_TFLITE_ENABLE_CMSIS_NN=1 -DPRINTF_SUPPORT_FLOAT -DPROJ_NAME=\"edge_impulse_inferencing_bootloader\"
+DEFINES = -DECM3532 -DFLASH -DPRINTF_SUPPORT_FLOAT -DPROJ_NAME=\"edge_impulse_inferencing_bootloader\"
 
 INCLUDES = -I../../inc
 INCLUDES+= -I$(TOP)/soc/ecm3532/m3/reg/inc

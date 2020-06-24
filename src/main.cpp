@@ -26,7 +26,8 @@
 
 static const float features[] = {
     // copy raw features here (for example from the 'Live classification' page)
-    // see https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532
+    // see https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532 
+
 };
 
 int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
@@ -51,18 +52,22 @@ void ei_printf(const char *format, ...)
     }
 }
 
-void ei_printf_float(float f)
+void ei_printfloat(int n_decimals, int n, ...)
 {
     int i;
-    double val = static_cast<double>(f);
-    int n = 1;
-    int n_decimals = 5;
+    double val;
 
     char buffer[32];
 
     sprintf(buffer, "%%.%df", n_decimals);
 
-    ei_printf(buffer, val);
+    va_list vl;
+    va_start(vl,n);
+    for (i=0;i<n;i++){
+        val=va_arg(vl,double);
+        ei_printf(buffer, val);
+    }
+    va_end(vl);
 }
 
 
@@ -108,7 +113,7 @@ int main(void)
         // print the predictions
         ei_printf("[");
         for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
-            ei_printf_float(result.classification[ix].value);
+            ei_printfloat(5, 1, result.classification[ix].value);
     #if EI_CLASSIFIER_HAS_ANOMALY == 1
             ei_printf(", ");
     #else
@@ -118,7 +123,7 @@ int main(void)
     #endif
         }
     #if EI_CLASSIFIER_HAS_ANOMALY == 1
-        ei_printf_float(result.anomaly);
+        ei_printfloat(5, 1, result.anomaly);
     #endif
         ei_printf("]\n");
 
