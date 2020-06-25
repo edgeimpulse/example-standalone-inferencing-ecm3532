@@ -27,6 +27,7 @@ TOP = ../..
 PROJECT_NAME = edge_impulse_inferencing
 
 CPU = cortex-m3
+BOARD = unknown
 
 LINKER_SCRIPT =	../ecm3532.ld
 STARTUP_FILE = ../startup_gcc.c
@@ -83,8 +84,8 @@ INCLUDES+= -I$(TOP)
 VPATH = $(TOP)/src
 VPATH+= $(TOP)/soc/ecm3532/boards/eta_ai_sensor/eta_bsp/src
 VPATH+= $(TOP)/utils/src
+VPATH+= $(TOP)/devices/src
 VPATH+= $(TOP)/3rd_party/tiny_printf
-VPATH+= $(TOP)/3rd_party/bosch_sensortec/BMP3-Sensor-API
 VPATH+= $(TOP)/edge-impulse-sdk
 VPATH+= $(TOP)/edge-impulse-sdk/anomaly
 VPATH+= $(TOP)/edge-impulse-sdk/classifier
@@ -142,6 +143,7 @@ SRC+= eta_bsp.c
 SRC+= eta_bsp_button.c
 SRC+= eta_bsp_led.c
 SRC+= eta_bsp_power.c
+SRC+= eta_devices_a31r118.c
 SRC+= eta_utils_stdio.c
 SRC+= eta_utils_state.c
 SRC+= printf.c
@@ -197,7 +199,14 @@ OD_OPTS = -S -d
 
 ##### Rules #####
 .PHONY: all clean realclean
-all: bin bin/$(PROJECT_NAME).bin
+all:
+	@echo "Specify target. Can be either evb or ai_sensor.\n"
+	@echo "\tUsage: make evb or make ai_sensor\n"
+
+evb:bin bin/$(PROJECT_NAME).bin
+
+ai_sensor:bin bin/$(PROJECT_NAME).bin
+ai_sensor:DEFINES += -DUSE_BLE
 
 bin:
 	mkdir -p $@
