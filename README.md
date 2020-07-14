@@ -1,6 +1,6 @@
 # Edge Impulse Example: stand-alone inferencing (Eta Compute ECM3532)
 
-This runs an exported impulse on any Mbed-enabled development board. See the documentation at [Running your impulse locally (ECM3532)](https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532).
+This runs an exported impulse on the Eta Compute ECM3532 AI Sensor board. See the documentation at [Running your impulse locally (ECM3532)](https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532).
 
 ## License
 
