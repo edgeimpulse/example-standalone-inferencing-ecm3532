@@ -23,7 +23,6 @@
 #include "tensorflow/lite/micro/debug_log.h"
 #include "eta_bsp.h"
 
-// On mbed platforms, we set up a serial port and write to it for debug logging.
-extern "C" void DebugLog(const char* s) {
+void DebugLog(const char* s) {
     EtaUtilsStdioPrintf(s);
 }

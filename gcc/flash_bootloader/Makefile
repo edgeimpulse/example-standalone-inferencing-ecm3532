@@ -119,6 +119,7 @@ VPATH+= $(TOP)/edge-impulse-sdk/dsp/dct
 VPATH+= $(TOP)/edge-impulse-sdk/dsp/spectral
 VPATH+= $(TOP)/edge-impulse-sdk/dsp/speechpy
 VPATH+= $(TOP)/edge-impulse-sdk/dsp/kissfft
+VPATH+= $(TOP)/edge-impulse-sdk/porting/ecm3532
 VPATH+= $(TOP)/edge-impulse-sdk/third_party/flatbuffers/include
 VPATH+= $(TOP)/edge-impulse-sdk/third_party/gemmlowp
 VPATH+= $(TOP)/edge-impulse-sdk/third_party/ruy
@@ -200,8 +201,7 @@ OD_OPTS = -S -d
 ##### Rules #####
 .PHONY: all clean realclean
 all:
-	@echo "Specify target. Can be either evb or ai_sensor.\n"
-	@echo "\tUsage: make evb or make ai_sensor\n"
+	make ai_sensor
 
 evb:bin bin/$(PROJECT_NAME).bin
 

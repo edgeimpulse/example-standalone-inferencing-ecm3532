@@ -26,8 +26,7 @@
 
 static const float features[] = {
     // copy raw features here (for example from the 'Live classification' page)
-    // see https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532 
-
+    // see https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532
 };
 
 int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
@@ -68,6 +67,20 @@ void ei_printfloat(int n_decimals, int n, ...)
         ei_printf(buffer, val);
     }
     va_end(vl);
+}
+
+void ei_printf_float(float f)
+{
+    int i;
+    double val = static_cast<double>(f);
+    int n = 1;
+    int n_decimals = 5;
+
+    char buffer[32];
+
+    sprintf(buffer, "%%.%df", n_decimals);
+
+    ei_printf(buffer, val);
 }
 
 
