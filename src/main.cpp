@@ -51,36 +51,50 @@ void ei_printf(const char *format, ...)
     }
 }
 
-void ei_printfloat(int n_decimals, int n, ...)
-{
-    int i;
-    double val;
-
-    char buffer[32];
-
-    sprintf(buffer, "%%.%df", n_decimals);
-
-    va_list vl;
-    va_start(vl,n);
-    for (i=0;i<n;i++){
-        val=va_arg(vl,double);
-        ei_printf(buffer, val);
-    }
-    va_end(vl);
-}
-
 void ei_printf_float(float f)
 {
-    int i;
-    double val = static_cast<double>(f);
-    int n = 1;
-    int n_decimals = 5;
+    float n = f;
 
-    char buffer[32];
+    static double PRECISION = 0.00001;
+    static int MAX_NUMBER_STRING_SIZE = 32;
 
-    sprintf(buffer, "%%.%df", n_decimals);
+    char s[MAX_NUMBER_STRING_SIZE];
 
-    ei_printf(buffer, val);
+    if (n == 0.0) {
+        strcpy(s, "0");
+    }
+    else {
+        int digit, m, m1;
+        char *c = s;
+        int neg = (n < 0);
+        if (neg) {
+            n = -n;
+        }
+        // calculate magnitude
+        m = log10(n);
+        if (neg) {
+            *(c++) = '-';
+        }
+        if (m < 1.0) {
+            m = 0;
+        }
+        // convert the number
+        while (n > PRECISION || m >= 0) {
+            double weight = pow(10.0, m);
+            if (weight > 0 && !isinf(weight)) {
+                digit = floor(n / weight);
+                n -= (digit * weight);
+                *(c++) = '0' + digit;
+            }
+            if (m == 0 && n > 0) {
+                *(c++) = '.';
+            }
+            m--;
+        }
+        *(c) = '\0';
+    }
+
+    EtaCspUartPuts(&g_sUart1, s);
 }
 
 
@@ -126,7 +140,7 @@ int main(void)
         // print the predictions
         ei_printf("[");
         for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
-            ei_printfloat(5, 1, result.classification[ix].value);
+            ei_printf_float(result.classification[ix].value);
     #if EI_CLASSIFIER_HAS_ANOMALY == 1
             ei_printf(", ");
     #else
@@ -136,7 +150,7 @@ int main(void)
     #endif
         }
     #if EI_CLASSIFIER_HAS_ANOMALY == 1
-        ei_printfloat(5, 1, result.anomaly);
+        ei_printf_float(result.anomaly);
     #endif
         ei_printf("]\n");
 
