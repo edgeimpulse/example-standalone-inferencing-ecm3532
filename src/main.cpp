@@ -111,6 +111,10 @@ int main(void)
     EtaCspBuckM3FrequencySet(80000, eBuckStableWait);
     EtaUtilsStdioTerminalClear();
 
+#if defined(EI_CLASSIFIER_COMPILED) && EI_CLASSIFIER_COMPILED == 1
+    #error "This platform does not support the EON compiler. Export with EON compiler disabled."
+#endif
+
     while (1) {
         ei_printf("Edge Impulse standalone inferencing (Eta Compute ECM3532)\n");
 

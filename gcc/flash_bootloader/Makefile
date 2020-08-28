@@ -155,6 +155,7 @@ SRC+= kiss_fftr.cpp
 SRC+= fast-dct-fft.cpp
 SRC+= $(shell find ../../edge-impulse-sdk/CMSIS -name "*.c" | rev | cut -d"/" -f1 | rev)
 SRC+= $(shell find ../../edge-impulse-sdk/tensorflow -name "*.c*" | rev | cut -d"/" -f1 | rev)
+SRC+= $(shell find ../../tflite-model -name "*.cpp" | rev | cut -d"/" -f1 | rev)
 
 
 C_SRC = $(filter %.c,$(SRC))
