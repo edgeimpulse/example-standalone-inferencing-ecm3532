@@ -1,0 +1,48 @@
+menu "RPC library"
+
+config RPC
+    bool "library to enable RPC cross accross processor boundary"
+    default n
+endmenu
+menu "DSP FW Configuations"
+
+config DSP_BACK_DOOR_UART
+    bool "enable DSP back door uart"
+    depends on RPC  && ECM3531
+    default n
+config DSP_UART
+    bool "enable DSP uart"
+    depends on RPC  && ECM3532
+    default y
+
+choice DSP_FW
+    prompt "Select DSP FW"
+    depends on RPC
+    config DSP_EXECUTOR
+        bool "executor"
+    config DSP_HELLO_WORLD
+        bool "hello world"
+    config DSP_SENSOR
+        bool "sensor"
+    config DSP_PDM
+        bool "pdm fw"
+    config DSP_I2C
+        bool "i2c"
+    config DSP_KERNEL
+        bool "kernel"
+    config DSP_TIMER
+        bool "timer"
+    config DSP_MALLOC
+        bool "malloc"
+endchoice
+config DSP_FW
+    string
+    default "hello_world" if DSP_HELLO_WORLD
+    default "executor_test" if DSP_EXECUTOR
+    default "sensor_test" if DSP_SENSOR
+    default "pdm_test" if DSP_PDM
+    default "i2c_test" if DSP_I2C
+    default "kernel_test" if DSP_KERNEL
+    default "timer_test" if DSP_TIMER
+    default "malloc_test" if DSP_MALLOC
+endmenu

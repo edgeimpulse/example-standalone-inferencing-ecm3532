@@ -1,0 +1,25 @@
+menu "External IO Drivers"
+config DISPLAY_NHD0216
+	bool "NHD0216 Display Driver"
+    depends on EVB_BOARD && I2C_1
+    default n
+config CAM_HM01B0
+	bool "Camera HM01B0 driver"
+    default n
+    if CAM_HM01B0
+    orsource "hm01b0/Kconfig"
+    endif
+config CAM_HM0360
+	bool "Camera HM0360 driver"
+    default n
+    if CAM_HM0360
+    orsource "hm0360/Kconfig"
+    endif
+config SPI_FLASH
+	bool "External SPI Flash"
+	depends on (AI_SENSOR_BOARD || AI_VISION_EXTENSION_BOARD) && SPI_1_MASTER
+    default y
+    if SPI_FLASH
+    orsource "spi_flash/Kconfig"
+    endif
+endmenu

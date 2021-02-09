@@ -1,0 +1,153 @@
+mainmenu "ETA Build Config"
+
+choice SOC
+    prompt "SOC"
+    comment "Select Target SOC"
+    config ECM3532
+	    bool "ECM3532 SOC"
+endchoice
+
+config SOC
+    string
+    default "ecm3532" if ECM3532
+if ECM3532
+config M3_RAM_START
+    hex
+    default 0x10000000
+config M3_RAM_SIZE
+    hex
+    default 0x40000
+config M3_FLASH_START
+    hex "Flash start address"
+    default 0x01000000
+config M3_FLASH_SIZE
+    hex "Flash size"
+    default 0x80000
+orsource "hw/board/ecm3532/Kconfig"
+orsource "hw/csp/ecm3532/Kconfig"
+menu "Periphal HAL"
+orsource "hw/hal/common/Kconfig"
+orsource "hw/hal/ecm3532/Kconfig"
+endmenu
+orsource "hw/power/ecm3532/Kconfig"
+endif
+orsource "framework/rpc/Kconfig"
+orsource "framework/executor/Kconfig"
+orsource "framework/sensor_mgr/Kconfig"
+orsource "hw/sensor_drv/Kconfig"
+orsource "hw/drivers/Kconfig"
+
+menu "Application Menu"
+orsource "appKconfig"
+endmenu
+
+choice LINKER_FILE
+    prompt "Select Linker File"
+    comment "Data and code resides in RAM, FLASH is not used"
+    config RAM_ONLY
+        bool "RAM Only"
+    comment ""
+
+    comment "Data and code resides in RAM, FLASH is not used, \
+16K end of RAM is reserved for IPC"
+    config RAM_SHM_ONLY
+        bool "RAM only and reserved SHM in RAM"
+    comment ""
+
+    comment "Execute from FLASH, Data copied to RAM"
+    config FLASH
+        bool "FLASH and RAM"
+    comment ""
+
+    comment "Execute from FLASH and Data copied to RAM, \
+16K end of RAM is reserved for IPC"
+    config FLASH_SHM
+        bool "FLASH and RAM, with reserved SHM in RAM"
+    comment ""
+
+    comment "Boot From Flash and relocate to RAM"
+    config FLASH_RELOCATE
+        bool "FLASH Boot relocate to RAM"
+    comment ""
+
+    comment "Boot From Flash and relocate to RAM, \
+Reserve SHM for IPC"
+    config FLASH_SHM_RELOCATE
+        bool "FLASH Boot relocate to RAM with SHM reserved"
+    comment ""
+
+endchoice
+choice  BIN_FILE_SECTION
+        prompt "Bin Array Section"
+    config BIN_IN_RODATA
+        bool "incbin in text rodata"
+    config BIN_IN_BINSECTION
+        bool "incbin in flash binSection"
+endchoice
+config BIN_FILE_SECTION
+    string
+    default ".rodata" if BIN_IN_RODATA
+    default ".binSection" if BIN_IN_BINSECTION
+
+config SHM_LENGTH
+    hex "Shared memory Length in Bytes"
+    default 0x4000
+    depends on (FLASH_SHM_RELOCATE || FLASH_SHM || RAM_SHM_ONLY)
+
+config LINKER_FILE
+    string
+    default "ram" if RAM_ONLY
+    default "ram_shm" if RAM_SHM_ONLY
+    default "flash" if FLASH
+    default "flash_shm" if FLASH_SHM
+    default "flash_relocate_to_ram" if FLASH_RELOCATE
+    default "flash_shm_relocate_to_ram" if FLASH_SHM_RELOCATE
+
+menu "General Features"
+config CLI
+	bool "Enable Command Line Interface"
+    depends on (UART_0 || UART_1)
+	default y
+
+if ECM3532
+
+config SYSTICK_ON_REF_CLK
+    bool
+    default y if ECM3532
+    default n
+config SYSTICK_ON_CPU_CLK
+    bool
+    default n
+endif
+config TICK_RATE_HZ
+    int "Rtos ticks per sec"
+    range 1 500  if SYSTICK_ON_REF_CLK
+    range 1 1000
+    default 500  if SYSTICK_ON_REF_CLK
+    default 1000
+if SYSTICK_ON_REF_CLK
+config SYSTICK_REF_CLOCK
+    int
+    default 1024
+endif
+
+config HEAP_SIZE
+    int "FreeRtos HEAP Size In Bytes"
+    default 20000
+    comment "Check free heap using FreeHeap command before changing it"
+
+config RTOS_SOFT_TIMER
+    bool "RTOS Soft Timer"
+    default n
+
+config RTOS_SOFT_TIMER_PEND_CALL
+    bool "RTOS Soft Timer Pend Call"
+    default n
+    depends on RTOS_SOFT_TIMER
+
+config AZURE_IOT_SDK
+    bool
+    default n
+endmenu
+
+orsource "util/packaging/Kconfig"

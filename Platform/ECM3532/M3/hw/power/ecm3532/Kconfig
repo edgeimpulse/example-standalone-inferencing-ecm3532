@@ -1,0 +1,32 @@
+menu "Power Management Setting"
+comment "This enable's DVFS based on system load"
+
+config PM_ENABLE
+    bool "Enable Load based DVFS"
+    default n
+    select HAL_COMMON_TIMER
+config PM_WFI_ONLY
+    bool "PM LPM as WFI Only"
+    depends on PM_ENABLE
+    default n
+config ENABLE_FRONT_PANEL
+    bool "Enable Front Panel Req for Freq Counter"
+    default n
+    depends on ECM3532
+
+if PM_ENABLE
+orsource "src/Kconfig"
+endif
+
+config M3_INIT_FREQ
+    int "M3 Default Init Frequency in MHz"
+    range 20 100
+    default 60
+    depends on ECM3532
+
+config PM_MON
+    bool "CPU load monitor"
+    default y
+    depends on PM_ENABLE  && ECM3532
+
+endmenu

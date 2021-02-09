@@ -1,0 +1,7 @@
+TensaiSDK VERSION: v1.0.0a6
+COMPILED ON: 2020-05-15 11:24:28
+COMPILER VERSIONS:
+	GCC version: gcc version 8.2.1 20181213 (release) [gcc-8-branch revision 267074] (GNU Tools for Arm Embedded Processors 8-2018-q4-major)
+	Keil ARMCC version: ARM Compiler 5.06 update 6 (build 750)
+	IAR ICCARM version: IAR ANSI C/C++ Compiler V8.32.1.169/W32 for ARM
+	Embedded Studio GCC version: gcc version 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] (GNU Tools for Arm Embedded Processors 9-2019-q4-major) 
