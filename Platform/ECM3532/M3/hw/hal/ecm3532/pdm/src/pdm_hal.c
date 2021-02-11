@@ -84,7 +84,7 @@ static int audioDspNotifyEvent(uint32_t header, uint32_t data)
 static int audioDspRpcInit(void)
 {
   uint8_t evHMask = 0;
-  
+
   /* Response will be aways serialized*/
   if (!pdmDspRespSem)
   {
@@ -121,7 +121,7 @@ int ecm3532_pdm_init(tPdmcfg *sPdm, tPCMFrameCb fCb, void *cbPtr)
   if (!sPdm || !fCb)
     return -EINVAL;
   else if ((sPdm->pdmNum > CONFIG_PDM_COUNT) || (sPdm->sRate > PCM16KHZ) ||
-      (sPdm->cMode > STEREO) || (sPdm->rFLen > FL30MS))
+      (sPdm->cMode > STEREO))
   {
     ecm35xx_printf ("Invalid configuration\r\n");
     return -EINVAL;
@@ -182,7 +182,6 @@ int ecm3532_pdm_init(tPdmcfg *sPdm, tPCMFrameCb fCb, void *cbPtr)
   REGN_M1(sPdm->pdmNum, PDM_PDM_CORE_CONF, SINC_RATE, 0x40);
   REGN_M1(sPdm->pdmNum, PDM_PDM_CORE_CONF, MCLKDIV, 0x0);
   REGN_M1(sPdm->pdmNum, PDM_PDM_CORE2_CONF, PDMCKO_DLY, 0x3);
-  //REGN_M1(sPdm->pdmNum, PDM_PDM_CORE2_CONF, PCM_CHSET, sPdm->cMode);
 
   if(sPdm->sRate == PCM16KHZ)
   {
@@ -210,10 +209,10 @@ int ecm3532_pdm_init(tPdmcfg *sPdm, tPCMFrameCb fCb, void *cbPtr)
 
   audioDspRpcInit();
 
-  aBuf = pvPortMalloc(bLen * sizeof(int16_t) * FRAME_CNT);
+  aBuf = SharedMemAlloc(bLen * sizeof(int16_t) * FRAME_CNT);
   if (!aBuf)
   {
-    ecm35xx_printf("mallox failed for PCM buffer\r\n");
+    ecm35xx_printf("shmem mallox failed for PCM buffer\r\n");
     configASSERT(0);
   }
 
@@ -253,7 +252,7 @@ int ecm3532_start_pdm_stream(uint8_t pdmNum)
   vTaskDelay(50);
   data = SharedMemAlloc(sizeof(uint16_t));
   data[0] = pdmNum;
-  rpcSubmitWork(RPC_MODULE_ID_AUDIO, AUDIO_START, data);  
+  rpcSubmitWork(RPC_MODULE_ID_AUDIO, AUDIO_START, data);
   xSemaphoreTake(pdmDspRespSem, portMAX_DELAY);
   SharedMemFree(data);
   sPdmDev[PDM_INDEX(pdmNum)].st = AUDIO_START;

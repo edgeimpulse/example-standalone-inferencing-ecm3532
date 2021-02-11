@@ -50,6 +50,7 @@ mem = {"ecm3531": {"flash_start": "0x01000000",
                      "magic3": {"addr": "0x1001FFFC", "val": "0xC369A517"}},
 
         "ecm3532": {"flash_start": "0x01000000",
+                    "flash_app": "0x01006000",
                     "flash_length": "512K",
                     "sram_start": "0x10000000",
                     "sram_length": "256K",
@@ -170,7 +171,7 @@ class JLink:
         """Returns true if the specified device is connected to the programmer. Device needs to be a string recognised by JLink, interface can be either S for SWD or J for JTAG."""
         self.add_command("connect")
         self.add_command("q")
-        output = self.run_commands(timeout=5)
+        output = self.run_commands(timeout=50)
         return self._connected.encode() in output
 
 
@@ -308,8 +309,8 @@ if __name__ == "__main__":
     group.add_argument('--interface', choices=["jlink", "ocd", ""], default='jlink',
                         help="Interface to use (J-Link or OpenOCD)")
 
-    group.add_argument('--type', choices=["f", "fbs", "s"], default='f',
-                       help="variant (f=flash, fbs=flash_boot_sram, s=sram)")
+    group.add_argument('--type', choices=["f", "fbs", "s", "a"], default='f',
+                       help="variant (f=flash, fbs=flash_boot_sram, s=sram, a=flash_app)")
 
     group.add_argument('-s', '--stop', action='store_true',
                         help="stop the core after programming")
@@ -367,6 +368,8 @@ if __name__ == "__main__":
             variant = 'sram'
         elif variant == 'fbs':
             variant = 'flash_boot_sram'
+        elif variant == 'a':
+            variant = 'flash_app'
         else:
             variant = 'flash'
 
@@ -444,6 +447,11 @@ if __name__ == "__main__":
                                 "mww {} {}\n".format(mem[SoC]["magic2"]["addr"], mem[SoC]["magic2"]["val"]),
                                 "mww {} {}\n".format(mem[SoC]["magic3"]["addr"], mem[SoC]["magic3"]["val"]),
                                 stop]
+            elif variant == 'flash_app':
+                ocd_commands = ["halt\n",
+                                "flash write_image erase {} {}\n".format(bin_file, int(mem[SoC]["flash_app"], 0)),
+                                "mww {} 0\n".format(mem[SoC]["magic1"]["addr"]),
+                                stop]
             else:
                 ocd_commands = ["halt\n",
                                 "flash write_image erase {} {}\n".format(bin_file, int(mem[SoC]["flash_start"], 0)),
@@ -506,6 +514,11 @@ if __name__ == "__main__":
                     interface.program(bin_files=[(bin_file, int(mem[SoC]["sram_start"], 0))])
                     interface.addr_write(int(mem[SoC]["magic2"]["addr"], 0), int(mem[SoC]["magic2"]["val"], 0))
                     interface.addr_write(int(mem[SoC]["magic3"]["addr"], 0), int(mem[SoC]["magic3"]["val"], 0))
+                elif (variant == 'flash_app'):
+                    print ("\n\rDownloading via flash app\n\r")
+                    interface.program(bin_files=[(bin_file, int(mem[SoC]["flash_app"], 0))])
+                    interface.addr_write(int(mem[SoC]["magic1"]["addr"], 0), 0)
+                    interface.reset()
                 else:
                     interface.program(bin_files=[(bin_file, int(mem[SoC]["flash_start"], 0))])
                     interface.addr_write(int(mem[SoC]["magic1"]["addr"], 0), 0)

@@ -158,6 +158,8 @@
 #define ICM20602_SAMPLE_RATE_50HZ   0x13
 #define ICM20602_SAMPLE_RATE_20HZ   0x31
 
+#define ICM20602_HIGH_SAMPLE_RATE_4000HZ   0x08    //Set ACCEL_FCHOICE_B = 1 rest all bit don't care.
+#define BIT_ACCEL_FCHOICE_B 0x08
 
 #define BIT_DATA_RDY_INT_EN             0x01 //enable interrupting source bit within INT_ENABLE register
 #define BITS_DATA_RDY_INT_SEL           0x01

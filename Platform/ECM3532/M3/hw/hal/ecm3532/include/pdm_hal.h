@@ -53,22 +53,6 @@ typedef enum {
     STEREO = 3,
 }tCMode;
 
-/** PCM frame length  */
-typedef enum {
-    /** 5 msec frame length`*/
-    FL5MS = 5,
-    /** 10 msec frame length`*/
-    FL10MS = 10,
-    /** 15 msec frame length`*/
-    FL15MS = 15,
-    /** 20 msec frame length`*/
-    FL20MS = 20,
-    /** 25 msec frame length`*/
-    FL25MS = 25,
-    /** 30 msec frame length`*/
-    FL30MS = 30,
-}tFlen;
-
 /** pdm channel configuration */
 typedef struct {
     /** pdm channel number 0/1 */
@@ -97,6 +81,7 @@ typedef void (*tPCMFrameCb)(void *ptr, void *buf, uint16_t blen);
  * Initialize PDM channel
  * @param sPdm channel configuration
  * @param fPcmCb PCM fram callback function
+ * @param vCbptr callback pointer
  * @return 0 on success, non-zero error code on failure
 */
 int ecm3532_pdm_init(tPdmcfg *sPdm, tPCMFrameCb fPcmCb, void *vCbptr);
@@ -120,7 +105,7 @@ int ecm3532_stop_pdm_stream(uint8_t u8Chan);
 /**
  * DeInit PDM, will free up resources
  *
- * @param u8Chan PDM channel number
+ * @param pdmNum PDM channel number
  * @return 0 on success, non-zero error code on failure
  */
 int ecm3532_pdm_deinit(uint8_t pdmNum);

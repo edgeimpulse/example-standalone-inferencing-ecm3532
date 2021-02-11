@@ -131,7 +131,7 @@ void vSyncLow(void *ptr)
  *
  ******************************************************************************/
 
-__attribute__((section(".initSection"))) void EtaDevicesHm01b0Init(void)
+void EtaDevicesHm01b0Init(void)
 {
     uint32_t ui32Idx;
 

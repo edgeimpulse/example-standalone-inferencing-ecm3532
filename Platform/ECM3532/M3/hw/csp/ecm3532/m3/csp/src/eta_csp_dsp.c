@@ -41,8 +41,6 @@
 #include "eta_csp_pdm.h"
 #include "eta_csp_buck.h"
 
-extern void EtaCspIoPrintf(char *pcFormat, ...);
-
 #define DSPPRINT_DEBUG if(0)
 
 //
@@ -502,8 +500,8 @@ EtaCspDspMboxDataSend(uint32_t ui32Data)
         if(--ui32MsgTimeout == 0)
         {
             ui32MsgTimeout = 100000;
-            DSPPRINT_DEBUG EtaCspIoPrintf("M3 waiting for DSP_MAILBOX to be not busy. " \
-                            "curr value = %x\r\n", REG_MBOX_M3_M32DSP_STATUS.V);
+            EtaCspIoPrintf("M3 waiting for DSP_MAILBOX to be not busy. " \
+                           "curr value = %x\r\n", REG_MBOX_M3_M32DSP_STATUS.V);
         }
     }
     while(REG_MBOX_M3_M32DSP_STATUS.V == 1);
@@ -529,7 +527,7 @@ EtaCspDspMboxCmdSend(uint16_t ui16Cmd, uint32_t ui32Data)
     //
     // Print.
     //
-    // ecm35xx_printf("M3 EtaCspDspMboxDataSend(0x%x)\r\n",ui32Data);
+    // EtaCspIoPrintf("M3 EtaCspDspMboxDataSend(0x%x)\r\n",data);
 
     //
     // We wait until DSP has read previous mailbox (if any)
@@ -594,7 +592,7 @@ EtaCspDspPrintAddrInc(uint32_t ui32CurrAddress)
 void
 EtaCspDspMboxDefaultHandler(uint16_t ui16RxMboxCmd, uint32_t ui32RxMboxData)
 {
-    DSPPRINT_DEBUG EtaCspIoPrintf("ERROR: Unknown DSP mailbox command:%x with data:%x\r\n",
+    EtaCspIoPrintf("ERROR: Unknown DSP mailbox command:%x with data:%x\r\n",
                    ui16RxMboxCmd, ui32RxMboxData);
 //
 // Keil.
@@ -741,7 +739,7 @@ EtaCspDspPrintViaM3(uint32_t ui32Addr)
     uint8_t ui8DwordOffset;
     bool bAddrIsInXymem = true;
 
-    // EtaCspIoPrintf("DSPPRINT:");
+    EtaCspIoPrintf("DSPPRINT:");
 
     if(bAddrIsInXymem)
     {
@@ -807,7 +805,7 @@ EtaCspDspPrintViaM3(uint32_t ui32Addr)
            (ui8Temp == 0x0a)                        | // LF
            (ui8Temp == 0x0d)) // CR
         {
-            // EtaCspIoPrintf("%c", ui8Temp);
+            EtaCspIoPrintf("%c", ui8Temp);
         }
 
         //
@@ -820,7 +818,7 @@ EtaCspDspPrintViaM3(uint32_t ui32Addr)
         }
         else
         {
-            // EtaCspIoPrintf("\r\nUNPRINTABLE DSP CHAR:0x%x\r\n", ui8Temp);
+            EtaCspIoPrintf("\r\nUNPRINTABLE DSP CHAR:0x%x\r\n", ui8Temp);
             while(1)
             {
             }
@@ -830,8 +828,8 @@ EtaCspDspPrintViaM3(uint32_t ui32Addr)
 
     if(ui32Timeout == 0)
     {
-        /*EtaCspIoPrintf("\r\nWARNING: Had to abort DSP print, over 250" \
-                       "characters \r\n");*/
+        EtaCspIoPrintf("\r\nWARNING: Had to abort DSP print, over 250" \
+                       "characters \r\n");
         return;
     }
 

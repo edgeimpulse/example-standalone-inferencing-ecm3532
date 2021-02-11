@@ -57,6 +57,39 @@ static int32_t icm20602_gy_fs_set(struct icm20602_data *data, icm20602_fs_g_t va
     return 0;
 }
 
+/**
+  * @brief  Accelerometer high data rate selection.[set]
+  *
+  * @param  data    Read / write interface definitions
+  * @param  val    high ODR setting for accel through reg ACCEL_CONFIG2
+  * @retval        Interface status (MANDATORY: return 0 -> no Error).
+  *
+  */
+static int32_t icm20602_accel_data_rate_set_higher_odr(struct icm20602_data* data,
+    uint16_t odr)
+{
+    uint16_t sr_divider;
+    uint8_t temp;
+    data->icm20602Odr = odr;
+    data->ui16XlOdr = odr;
+    if (data->ui16GyroOdr)
+    {
+        data->ui16GyroOdr = odr;  //Configuring sample rate divider will also change gyro odr.
+    }
+
+    sr_divider = 0;
+    data->hw_tf->write_data(data, ICM20602_SMPLRT_DIV, sr_divider);
+
+    //Enable accelerometer
+    data->hw_tf->read_reg(data, ICM20602_PWR_MGMT_2, &temp);
+    temp &= ~BIT_PWR_ACCEL_STBY;
+    data->hw_tf->write_data(data, ICM20602_PWR_MGMT_2, temp);
+
+    //set higher odr (4KHz) for accel
+    data->hw_tf->write_data(data, ICM20602_ACCEL_CONFIG2, ICM20602_HIGH_SAMPLE_RATE_4000HZ);
+
+    return 0;
+}
 
 /**
   * @brief  Accelerometer data rate selection.[set]
@@ -101,6 +134,22 @@ static int32_t icm20602_accel_data_rate_get(struct icm20602_data *data)
 {
     uint16_t odr;
     uint8_t sr_divider;
+
+///////////higher odr case
+    if (data->icm20602Odr > 1000)
+    {
+        uint8_t temp;
+        data->hw_tf->read_reg(data, ICM20602_ACCEL_CONFIG2, &temp);
+
+        temp = temp & BIT_ACCEL_FCHOICE_B;
+        if (temp == 0)
+        {
+            LOG_DBG("Warning issue in get accel odr expected = higher ODR but ACCEL_FCHOICE_B is not set \r\n");
+        }
+        return data->icm20602Odr;
+    }
+/////////////////
+
 
     data->hw_tf->read_reg(data, ICM20602_SMPLRT_DIV, &sr_divider);
     odr = 1000 / (sr_divider + 1);
@@ -459,14 +508,37 @@ icm20602DrvIoctl(tSDrvHandle sDrvHandle, tSensorType iSensor,
             uint16_t sr_divider_plus1;
             val = *(int32_t *)vPtr;
             odr = (uint16_t)val;
-            if (odr > 1000)
+            if (odr > 4000)
             {
                 //Issue in odr settings.
-                ecm35xx_printf("\n\r ODR settings > 1000 not implemented \n\r");
+                ecm35xx_printf("\n\r ODR settings > 4000 not support \n\r");
                 return -EINVAL;
             }
-            if (odr)
+            if (odr > 1000)
             {
+                if (iSensor == SENSOR_TYPE_GYROSCOPE)
+                {
+                    //Issue in odr settings.
+                    ecm35xx_printf("\n\r Gyro for high ODR settings not supported\n\r");
+                    return -EINVAL;
+                }
+                if (iSensor == SENSOR_TYPE_ACCELEROMETER)
+                {
+                    odr = 4000;  //only 4kHz high rate accel odr is valid configuration.
+                    ecm35xx_printf("\n\r setting accel odr = %d\n\r", odr);
+                    icm20602_accel_data_rate_set_higher_odr(icmdata, odr);
+                }
+            }
+            else if (odr)
+            {
+                //if we already set higher accel odr, then we cannot handle lower gyro odr. report error.
+                if (icmdata->icm20602Odr > 1000)
+                {
+                    //Issue in odr settings.
+                    ecm35xx_printf("\n\r High rate accel ODR and gyro together not supported \n\r");
+                    return -EINVAL;
+                }
+
                 if (odr < 4)
                     odr = 4;  //minimum supported odr is 1000/255 == 4
                 if (odr < icmdata->icm20602Odr)
@@ -673,6 +745,7 @@ tSensorDrvOps sicm20602DevOps = {
 void icm20602DrvInit(void)
 {
     icmdata = pvPortMalloc(sizeof(struct icm20602_data));
+    memset(icmdata,0,sizeof(struct icm20602_data));
     SensorDrvRegister(CONFIG_ICM20602_NAME, &sicm20602DevOps);
     icmdata->DevLock = xSemaphoreCreateMutex();
 }

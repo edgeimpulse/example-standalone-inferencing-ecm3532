@@ -1,8 +1,8 @@
 menu "Power Management Setting"
-comment "This enable's DVFS based on system load"
+comment "This enable's CVFS based on system load"
 
 config PM_ENABLE
-    bool "Enable Load based DVFS"
+    bool "Enable Load based CVFS"
     default n
     select HAL_COMMON_TIMER
 config PM_WFI_ONLY
@@ -23,6 +23,14 @@ config M3_INIT_FREQ
     range 20 100
     default 60
     depends on ECM3532
+
+config DSP_INIT_FREQ
+    int "DSP Default Init Frequency in MHz"
+    range 20 39 if (M3_INIT_FREQ < 40)
+    range 40 60 if (M3_INIT_FREQ >= 40 && M3_INIT_FREQ <= 60)
+    range 61 100 if (M3_INIT_FREQ > 60 && M3_INIT_FREQ <= 100)
+    default M3_INIT_FREQ
+
 
 config PM_MON
     bool "CPU load monitor"

@@ -174,12 +174,15 @@ ECM3531UartIsr(uint8_t ui8Port)
                     break;
                 }
             }
+
+          if (!sUp->ui32URxCnt) {
             if (sUp->fRxDone)
                     sUp->fRxDone(sUp->vRxCbArg);
             else
                 xSemaphoreGiveFromISR(sUp->xRxSem,
                         &lHigherPriorityTaskWoken);
                 portYIELD_FROM_ISR(lHigherPriorityTaskWoken);
+            }
         }
         /* only async receive no readbuf */
         else if(sUp->ui8AsyncRecvCnt) {
@@ -623,9 +626,4 @@ int32_t HalUartInit(uint8_t ui8Port)
 
     //HalUartSetCfg(ui8Port, &sPCfg);
     return 0;
-}
-
-void HalPuts(char *string)
-{
-    EtaCspUartPuts(&sUPort[1].sCspUdev, string);
 }

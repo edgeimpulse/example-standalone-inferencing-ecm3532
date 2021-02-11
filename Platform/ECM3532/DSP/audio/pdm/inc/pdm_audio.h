@@ -20,7 +20,7 @@
 #define CONFIG_PDM_0_DMA_CHAN (0)
 #define AUDIO_DEMO_M3_NUM_SAMPLES (240)
 #define AUDIO_DEMO_M3_NUM_PKTS (1)
-#define  AUDIO_DEMO_MEM_WIN (1)
+#define  AUDIO_DEMO_MEM_WIN (APP_MEM_WIN)
 
 #define ACFG_INDEX(x) (x < CONFIG_PDM_COUNT ? x : x - 1)
 

@@ -1,0 +1,47 @@
+file(REMOVE_RECURSE
+  "*"
+  "../config.h"
+  "../edge-impulse-standalone.ld"
+  ".config.old"
+  "App"
+  "CMakeCache.txt"
+  "CMakeDoxyfile.in"
+  "CMakeDoxygenDefaults.cmake"
+  "Doxyfile"
+  "Thirdparty"
+  "cmake_install.cmake"
+  "dsp_fw-prefix"
+  "dsp_src-prefix"
+  "edge-impulse-standalone.bin"
+  "edge-impulse-standalone.elf"
+  "edge-impulse-standalone.elf.json"
+  "edge-impulse-standalone.lss"
+  "edge-impulse-standalone.map"
+  "framework"
+  "hw"
+  "util
+"
+  "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/pre_built/libhal.a"
+  "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/pre_built/libhal.pdb"
+  "CMakeCache.txt"
+  "CMakeFiles/hal.dir/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/hal/common/gpio/src/gpio_hal.c.o"
+  "CMakeFiles/hal.dir/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/hal/common/i2c/src/i2c_hal.c.o"
+  "CMakeFiles/hal.dir/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/hal/common/rtc/src/rtc_hal.c.o"
+  "CMakeFiles/hal.dir/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/hal/common/spi/src/spi_hal.c.o"
+  "CMakeFiles/hal.dir/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/hal/common/timer/src/timer_hal.c.o"
+  "CMakeFiles/hal.dir/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/hal/common/uart/src/uart_hal.c.o"
+  "CPackConfig.cmake"
+  "CPackSourceConfig.cmake"
+  "\\*.bin"
+  "\\*.lss"
+  "\\*.map"
+  "\\.cmake"
+  "_CPack_Packages"
+  "cmake_install.cmake"
+  "util"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C)
+  include(CMakeFiles/hal.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

@@ -328,6 +328,8 @@ CONFIG_FLASH_MX25R6435F=y
 #
 # Application Menu
 #
+CONFIG_APP_NAME="edge-impulse-standalone"
+CONFIG_SW_VERSION="TensaiFlow_rc_alpha2_0.2"
 
 #
 # Hello World

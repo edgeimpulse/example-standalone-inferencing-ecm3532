@@ -1,6 +1,7 @@
 #include "config.h"
 #include "executor_public.h"
 #include "executor_config.h"
+#include "executor_common.h"
 #include "executor_private.h"
 #include "executor_trace.h"
 #include "executor_op.h"
@@ -94,6 +95,57 @@ ExecStatus Exec_ds_conv2d_q7 ( uint8_t execHwId, ExecOperand_t * inArray, ExecOp
       SubmitDSPWork(index);
     }
     return status;
+}
+#endif
+#if defined(CONFIG_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE1_PAD0_RELU_INPLACE) ||\
+    defined(CONFIG_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE2_PAD0_RELU_INPLACE)
+ExecStatus Exec_ds_conv2d_q7_inplace ( uint8_t execHwId, ExecOperand_t * inOutArray, ExecOperand_t * wt, ExecOperand_t * bias, ExecOperand_t * buffIn, const conv2d_opt * opt)
+{
+    ExecStatus status = EXEC_STATUS_OK;
+    exec_conv2d_q7_t * params;
+    ExecWork_t work;
+    uint8_t index;
+       // Get the param allocated and fill all the details
+     params = ( exec_conv2d_q7_t *) pvPortMalloc(sizeof (exec_conv2d_q7_t));
+     params->wt =  (  const q7_t *) ExecGetBufAddr(wt);
+     params->bias =  (  const q7_t *) ExecGetBufAddr(bias);
+     memcpy( &(params->opt),opt,sizeof(conv2d_opt));
+     work.params = (void *) params;
+     work.execHwId = execHwId;
+     work.numInputs = 2;
+     work.inbufs[0] = inOutArray;
+     work.inbufs[1] = buffIn;
+     /* NO Out buf, Output saved in inOutArray
+      * inOutArray is BUF_TYPE_INOUT*/
+     work.outBuf = inOutArray;
+     if (EXEC_HW_ID_M3 == execHwId){
+       //work. opID = EXEC_OP_M3_DS_CONV2D_SB_LAYER3_Q7;
+       //index = CheckAndScheduleWork(&work,1);
+       //SubmitM3Work(index);
+     }
+     if (EXEC_HW_ID_DSP == execHwId){
+       // Find the variant
+       if ((opt->filt_rows == 3) && ( opt->filt_cols == 3) && (opt->row_stride == 2) &&
+           (opt->row_pad == 0))
+       {
+         work. opID = EXEC_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE2_PAD0_RELU_INPLACE;
+       }
+       if ((opt->filt_rows == 3) && ( opt->filt_cols == 3) && (opt->row_stride == 1))
+       {
+         work. opID = EXEC_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE1_PAD0_RELU_INPLACE;
+       }
+       //if ((opt->filt_rows == 2) && ( opt->filt_cols == 2) && (opt->row_stride == 2) && (opt->row_pad == 0))
+       //{
+       //  work. opID = EXEC_OP_DSP_DS_CHW_2X2_CONV2D_STRIDE2_PAD0_RELU_INPLACE;
+       //}
+       work.variant = DEPTHWISE_CONV_2D;
+
+       index = CheckAndScheduleWork(&work,1);
+
+       SubmitDSPWork(index);
+
+     }
+     return status;
 }
 #endif
 #if defined(CONFIG_OP_DSP_HWC_PW_CONV2D_Q7) || defined(CONFIG_OP_M3_PW_CONV2D_Q7)
@@ -506,5 +558,76 @@ ExecStatus Exec_add_q7(uint8_t execHwId, ExecOperand_t * inArray0,
         SubmitM3Work(index);
     }
     return status;
+}
+#endif
+
+#ifdef CONFIG_OP_DSP_FFT_Q15
+ExecStatus Exec_fft_q15(uint8_t execHwId, ExecOperand_t * inArray0, ExecOperand_t  * outArray, uint16_t fft_length)
+{
+    tDsp_math_fft_opt *params;
+    ExecStatus status = EXEC_STATUS_OK;
+    ExecWork_t work;
+    uint8_t index;
+
+    params = (tDsp_math_fft_opt *) pvPortMalloc(sizeof(tDsp_math_fft_opt));
+    params->fft_length =  fft_length;
+    work.params = (void *) params;
+    work.execHwId = execHwId;
+    work. opID = EXEC_OP_DSP_MATH_FFT;
+    work.numInputs = 1;
+    work.inbufs[0] = inArray0;
+    work.outBuf = outArray;
+    index = CheckAndScheduleWork(&work,0);
+    if (EXEC_HW_ID_DSP == execHwId)
+    {
+        SubmitDSPWork(index);
+    }
+    return status;
+}
+#endif
+
+#if defined(CONFIG_OP_DSP_SQRT_IN_Q15_OUT_Q15) || defined(CONFIG_OP_DSP_EXP_IN_Q15_OUT_Q3_13) || defined(CONFIG_OP_DSP_LOG_IN_Q15_OUT_Q5_11)
+ExecStatus Exec_math_func_sqrt_exp_log_q15(uint8_t mathFunId, uint8_t execHwId, ExecOperand_t * inArray0, ExecOperand_t  * outArray, uint16_t len)
+{
+    tDsp_math_func_opt *params;
+    ExecStatus status = EXEC_STATUS_OK;
+    ExecWork_t work;
+    uint8_t index;
+
+    params = (tDsp_math_func_opt *) pvPortMalloc(sizeof(tDsp_math_func_opt));
+    params->len =  len;
+    work.params = (void *) params;
+    work.execHwId = execHwId;
+    work. opID = mathFunId;
+    work.numInputs = 1;
+    work.inbufs[0] = inArray0;
+    work.outBuf = outArray;
+    index = CheckAndScheduleWork(&work,0);
+    if (EXEC_HW_ID_DSP == execHwId)
+    {
+        SubmitDSPWork(index);
+    }
+    return status;
+}
+#endif
+
+#ifdef CONFIG_OP_DSP_SQRT_IN_Q15_OUT_Q15
+ExecStatus Exec_sqrt_q15(uint8_t execHwId, ExecOperand_t * inArray0, ExecOperand_t  * outArray, uint16_t len)
+{
+    return Exec_math_func_sqrt_exp_log_q15(EXEC_OP_DSP_MATH_SQRT,execHwId,inArray0,outArray,len);
+}
+#endif
+
+#ifdef CONFIG_OP_DSP_EXP_IN_Q15_OUT_Q3_13
+ExecStatus Exec_exp_q15(uint8_t execHwId, ExecOperand_t * inArray0, ExecOperand_t  * outArray, uint16_t len)
+{
+    return Exec_math_func_sqrt_exp_log_q15(EXEC_OP_DSP_MATH_EXP,execHwId,inArray0,outArray,len);
+}
+#endif
+
+#ifdef CONFIG_OP_DSP_LOG_IN_Q15_OUT_Q5_11
+ExecStatus Exec_log_q15(uint8_t execHwId, ExecOperand_t * inArray0, ExecOperand_t  * outArray, uint16_t len)
+{
+    return Exec_math_func_sqrt_exp_log_q15(EXEC_OP_DSP_MATH_LOG,execHwId,inArray0,outArray,len);
 }
 #endif

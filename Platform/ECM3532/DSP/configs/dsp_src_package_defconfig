@@ -77,6 +77,12 @@ CONFIG_EXECUTOR_UNIT_TEST=y
 # end of PDM block
 
 #
+# eta math library
+#
+CONFIG_ETA_MATH=y
+# end of eta math library
+
+#
 # Application Menu
 #
 
@@ -98,4 +104,5 @@ CONFIG_CSP_DSP_SRC_PACKAGE=y
 # CONFIG_NN_KERNEL_DSP_SRC_PACKAGE is not set
 # CONFIG_DSP_EXECUTOR_SRC_PACKAGE is not set
 CONFIG_SM_DSP_SRC_PACKAGE=y
+# CONFIG_ETA_MATH_DSP_SRC_PACKAGE is not set
 # end of DSP Source packaging

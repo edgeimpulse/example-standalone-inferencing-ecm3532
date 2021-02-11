@@ -44,6 +44,7 @@ int8_t DspTaskCreate(DspTaskHandler handler, void* pArg, uint8_t* taskId) // A m
             dspTaskList[index].pArg = pArg;
             status = 0;
             *taskId = index;
+            break;
         }
     }
     return status;

@@ -41,6 +41,8 @@
 #include "eta_csp_io.h"
 #include "eta_csp_status.h"
 
+#define DMA_CHANNEL_COUNT (4)
+volatile uint_fast8_t hw_dma_ch_st[DMA_CHANNEL_COUNT];
 
 /***************************************************************************//**
  *
@@ -117,6 +119,35 @@ EtaCspDmaChBusyGet(uint_fast8_t ui8Channel)
     {
         return eEtaSuccess;
     }
+}
+
+/***************************************************************************//**
+ *
+ *  EtaCspGetFreeDmaCh
+ *
+ *  @param ui8Channel - Channel to poll off of.
+ *
+ *  @return Returns eEtaSuccess if all went well, else config error
+ *
+ ******************************************************************************/
+
+tEtaStatus EtaCspGetFreeDmaCh(void)
+{
+  int ch = DMA_CHANNEL_COUNT -1;
+
+  do {
+    if (EtaCspDmaChBusyGet(ch) != eEtaBusy)
+      break;
+    ch--;
+  } while (ch >= 0);
+
+  if (ch < 0)
+  {
+    etaPrintf("\r\n DMA Error no free channel\r\n");
+    ch = eEtaBusy;
+  }
+
+  return ch;
 }
 
 /***************************************************************************//**

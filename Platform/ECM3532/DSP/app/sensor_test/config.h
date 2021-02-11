@@ -88,7 +88,7 @@
 #define CONFIG_PRINT_XL_DATA 1
 #define CONFIG_PRINT_GYRO_DATA 1
 #define CONFIG_APP_NAME "sensor_fwk"
-#define CONFIG_SW_VERSION "TensaiFlow_rc_alpha_plus-0.1"
+#define CONFIG_SW_VERSION "TensaiFlow_rc_alpha2_0.2"
 #define CONFIG_SW_VERSION_EXTRA "5-gdbda0372"
 #define CONFIG_RAM_SHM_ONLY 1
 #define CONFIG_BIN_IN_RODATA 1

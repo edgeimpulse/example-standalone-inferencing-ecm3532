@@ -40,7 +40,13 @@
 #include "semphr.h"
 #include "print_util.h"
 
+#ifdef CONFIG_QQVGA_MODE
+#include "eta_devices_hm0360_raw8_qqvga_5fps.h"
+#elif CONFIG_QVGA_MODE
+#include "eta_devices_hm0360_raw8_qvga_5fps.h"
+#else
 #include "eta_devices_hm0360_raw8_vga_5fps.h"
+#endif
 
 #define STARTING_COLUMN (0)
 #define END_COLUMN  (CONFIG_IMAGE_COLUMN_COUNT)
@@ -129,7 +135,7 @@ void vSyncLow(void *ptr)
  *
  ******************************************************************************/
 
-__attribute__((section(".initSection"))) void EtaDevicesHm0360Init(void)
+void EtaDevicesHm0360Init(void)
 {
     uint32_t ui32Idx;
 
@@ -138,9 +144,9 @@ __attribute__((section(".initSection"))) void EtaDevicesHm0360Init(void)
     Hm0360RegWrite(0x0100, 0x0);
     HalTmrDelay(0, 50);
     Hm0360RegWrite(0x0103, 0x1);
-    HalTmrDelay(0, 50);
+    HalTmrDelay(0, 500);
     Hm0360RegWrite(0x0103, 0x0);
-    HalTmrDelay(0, 10);
+    HalTmrDelay(0, 500);
 
     ecm35xx_printf("Cam Id %x%x \r\n", Hm0360RegRead(0), Hm0360RegRead(1));
 
@@ -203,7 +209,7 @@ EtaDevicesHm0360FrameStream(void)
  ******************************************************************************/
 
 static inline uint32_t
-_OneFrameRead(int8_t *pui8Frame)
+_OneFrameRead(uint8_t *pui8Frame)
 {
     bool bExit;
     uint32_t ui32Pixels;
@@ -322,7 +328,7 @@ _OneFrameRead(int8_t *pui8Frame)
  *
  ******************************************************************************/
 uint32_t
-EtaDevicesHm0360OneFrameReadBlocking(int8_t *pui8Frame)
+EtaDevicesHm0360OneFrameReadBlocking(uint8_t *pui8Frame)
 {
     uint32_t ui32Pixels;
 
@@ -330,6 +336,7 @@ EtaDevicesHm0360OneFrameReadBlocking(int8_t *pui8Frame)
     //
     // Trigger a frame.
     //
+    while(REG_GPIO_DATA_IN.V & g_sPins.ui32Vsync);
     EtaDevicesHm0360FrameStream();
 
 #endif

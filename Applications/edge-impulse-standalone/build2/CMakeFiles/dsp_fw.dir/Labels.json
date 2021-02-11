@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_fw"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_fw.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_fw-complete.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-install.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-mkdir.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-download.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-update.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-patch.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-configure.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"dsp_fw"
+		],
+		"name" : "dsp_fw"
+	}
+}

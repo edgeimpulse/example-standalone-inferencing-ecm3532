@@ -83,7 +83,7 @@ struct pin_ctrl gp_ctrl[PIN_CNT] = {
     [PIN_SPI0MISO] = {16, 8, 1},
 };
 
-const struct pinMux pinMuxArray [] __attribute__((section(CONFIG_BIN_FILE_SECTION))) =
+const struct pinMux pinMuxArray [] __attribute__((section(".initSection"))) =
 {
 #ifdef CONFIG_PIN0_MUX
     {
@@ -339,7 +339,7 @@ ecm3532_pin_config(uint8_t pin_no, uint8_t pin_func)
         return -EINVAL;
 
     reg = (int *)((int)PIN_CTRL_BASE +
-	                pctrl.reg_off);
+                    pctrl.reg_off);
     val = *reg;
 
     mask = (((1 << pctrl.bit_cnt) - 1) << pctrl.bpos);

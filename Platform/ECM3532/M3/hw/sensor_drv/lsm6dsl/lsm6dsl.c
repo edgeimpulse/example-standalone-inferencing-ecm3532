@@ -1752,6 +1752,7 @@ void Lsm6dslDrvInit(void)
     HalGpioOutInit(CONFIG_LSM6DSL_GPIO_USERIRQ, 1);
 #endif
     lsmdata = pvPortMalloc(sizeof(struct lsm6dsl_data));
+    memset(lsmdata,0,sizeof(struct lsm6dsl_data));
     SensorDrvRegister(CONFIG_LSM6DSL_NAME, &sLsm6dslDevOps);
     lsmdata->DevLock = xSemaphoreCreateMutex();
 }

@@ -18,6 +18,8 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/src")
     target_include_directories(executor PUBLIC
         "${CMAKE_CURRENT_LIST_DIR}/../kernel/inc")
 
+    target_include_directories(executor PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/../eta_math/inc")
 
 endif() # if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/src")
 endif() #_cmp_outer

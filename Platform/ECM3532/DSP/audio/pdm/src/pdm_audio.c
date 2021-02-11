@@ -2,6 +2,7 @@
 tAudCfg audCfg[CONFIG_PDM_COUNT];
 
 void setPdmDmaHandler(uint16_t pdm, uint16_t dmaChan);
+void clearPdmDmaHandler(uint16_t pdm, uint16_t dmaChan);
 void audio_start_dma(uint16_t pdmNum);
 
 /** Send Event to DSP */
@@ -58,6 +59,15 @@ void setPdmDmaHandler(uint16_t pdm, uint16_t dmaChan)
       audio_pdm0_dma_int_handler);
 }
 
+
+/** Clear DMA ISR handler */
+void clearPdmDmaHandler(uint16_t pdm, uint16_t dmaChan)
+{
+  EtaCspIsrExtIntDisable(eIrqNumDma0 + dmaChan, DMA_ISR_LINE);
+  EtaCspIsrIntClear(eIrqNumDma0 + dmaChan, DMA_ISR_LINE);
+  EtaCspIsrDefaultHandlerSet(eIrqNumDma0 +  dmaChan, DMA_ISR_LINE);
+}
+
 /** Send Response to M3*/
 static void sendResponseFromAudio(uint8_t moduleId, uint8_t evtRsp)
 {
@@ -74,14 +84,17 @@ void audio_start_dma(uint16_t pdmNum)
 {
   tDmaCmd dma_cmd = EtaCspDmaCmdGetDefault();
 
+  audCfg[ACFG_INDEX(pdmNum)].dmaChan = EtaCspGetFreeDmaCh();
+  setPdmDmaHandler(pdmNum, audCfg[ACFG_INDEX(pdmNum)].dmaChan);
+
   etaPrintf("start pdm %d dmaChan %d\r\n",pdmNum, audCfg[ACFG_INDEX(pdmNum)].dmaChan);
 
   dma_cmd.ui8Channel = audCfg[ACFG_INDEX(pdmNum)].dmaChan;
   dma_cmd.iSrcTarget = eDmaTargetIoMemPdm1;
   dma_cmd.iDstTarget = eDmaTargetIoMemWindow;
   dma_cmd.ui32SrcAddress = 0;
-  dma_cmd.ui32DstAddress = (AHB_WINDOW_IOMEM_ADDR(AUDIO_DEMO_MEM_WIN) +
-                            ((audCfg[ACFG_INDEX(pdmNum)].ahbAdr & 0x3) / 2));
+  dma_cmd.ui32DstAddress = AHB_WINDOW_IOMEM_ADDR(AUDIO_DEMO_MEM_WIN) +
+    ((audCfg[ACFG_INDEX(pdmNum)].ahbAdr - M3_SRAM_WIN3_ADDR) / 2);
   dma_cmd.ui16XferLength = audCfg[ACFG_INDEX(pdmNum)].rAcfg->bInfo.sFbuf.Flen;
 
   dma_cmd.cmd_reload_per_xfer = 1;
@@ -131,18 +144,9 @@ static void audioTask(tdspLocalMsg* msg, void* pArg)
        // Set up the windows
       ahbAdr = acfg->bInfo.sFbuf.fPtrHi;
       ahbAdr = ((ahbAdr << 16) | acfg->bInfo.sFbuf.fPtrLo);
-      st = EtaCspAhbWindowSet(AUDIO_DEMO_MEM_WIN, ahbAdr & 0xfffffffc);
-      if (st)
-        etaPrintf("AHB Window Mapping failed\r\n");
 
       audCfg[ACFG_INDEX(acfg->pdmNum)].ahbAdr = ahbAdr;
 
-      if (acfg->pdmNum)
-        audCfg[ACFG_INDEX(acfg->pdmNum)].dmaChan = CONFIG_PDM_1_DMA_CHAN;
-      else
-        audCfg[ACFG_INDEX(acfg->pdmNum)].dmaChan = CONFIG_PDM_0_DMA_CHAN;
-
-      setPdmDmaHandler(acfg->pdmNum, audCfg[ACFG_INDEX(acfg->pdmNum)].dmaChan);
       sendResponseFromAudio(RPC_MODULE_ID_AUDIO, RPC_RESPONSE);
       break;
     }
@@ -175,6 +179,7 @@ static void audioTask(tdspLocalMsg* msg, void* pArg)
       REG_PDM_DSP_CSR(pdmNum) = ui32Reg;
       etaPrintf("Stop Audio Stream %d\r\n", pdmNum);
       EtaCspDmaChTerminate(audCfg[ACFG_INDEX(pdmNum)].dmaChan);
+      clearPdmDmaHandler(pdmNum, audCfg[ACFG_INDEX(pdmNum)].dmaChan);
       sendResponseFromAudio(RPC_MODULE_ID_AUDIO, RPC_RESPONSE);
       break;
     }

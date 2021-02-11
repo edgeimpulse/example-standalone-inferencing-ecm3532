@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_src"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_src.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_src-complete.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_src-prefix/src/dsp_src-stamp/dsp_src-install.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_src-prefix/src/dsp_src-stamp/dsp_src-mkdir.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_src-prefix/src/dsp_src-stamp/dsp_src-download.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_src-prefix/src/dsp_src-stamp/dsp_src-update.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_src-prefix/src/dsp_src-stamp/dsp_src-patch.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_src-prefix/src/dsp_src-stamp/dsp_src-configure.rule"
+		},
+		{
+			"file" : "/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_src-prefix/src/dsp_src-stamp/dsp_src-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"dsp_src"
+		],
+		"name" : "dsp_src"
+	}
+}

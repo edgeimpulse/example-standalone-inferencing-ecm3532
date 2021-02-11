@@ -32,7 +32,7 @@
 //
 // HM01B0_RAW8_QVGA_8bits_lsb
 //
-const uint16_t HM01B0_INIT[][2] __attribute__((section(CONFIG_BIN_FILE_SECTION)))  =
+const uint16_t HM01B0_INIT[][2] __attribute__((section(".initSection")))  =
 {
 // ---------------------------------------------------
 // Initial

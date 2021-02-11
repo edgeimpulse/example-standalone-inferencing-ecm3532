@@ -1,10 +1,17 @@
 config SPI_FLASH_CS_PIN
     int  "spi flash chip select GPIO"
+    range 31 31 if AI_SENSOR_BOARD
+    range 30 30 if AI_VISION_EXTENSION_BOARD
+    range 26 26 if AI_VISION_BOARD
     default 31 if AI_SENSOR_BOARD
     default 30 if AI_VISION_EXTENSION_BOARD
+    default 26 if AI_VISION_BOARD
 config SPI_FLASH_SPI_NUM
     int  "spi flash number"
-    default 1
+    range 1 1 if (AI_SENSOR_BOARD || AI_VISION_EXTENSION_BOARD)
+    range 0 0 if (AI_VISION_BOARD)
+    default 1 if (AI_SENSOR_BOARD || AI_VISION_EXTENSION_BOARD)
+    default 0 if (AI_VISION_BOARD)
 config SPI_FLASH_DEBUG
     bool "Enable / Disable debug logging"
     default 0

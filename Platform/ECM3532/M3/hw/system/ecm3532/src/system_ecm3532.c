@@ -46,8 +46,12 @@
 #include "dsp_helper.h"
 #endif
 #include <stdint.h>
-
+#include "incbin.h"
 int32_t HalTmrChInit(tHalTmrCh iTmrChan);
+
+#if defined(CONFIG_RPC)
+INCBIN_ETA_DSP();
+#endif
 
 static volatile uint32_t r0;
 static volatile uint32_t r1;
@@ -59,13 +63,13 @@ static volatile uint32_t pc;
 static volatile uint32_t psr;
 
 #ifdef CONFIG_DEBUG_UART
-// void printReleaseInfo(void)
-// {
-//     ecm35xx_printf("\r\n=======================\r\n");
-//     ecm35xx_printf(" Release %s\r\n", CONFIG_SW_VERSION);
-//     ecm35xx_printf(" Runnning: %s\r\n", CONFIG_APP_NAME);
-//     ecm35xx_printf("=======================\r\n");
-// }
+void printReleaseInfo(void)
+{
+    ecm35xx_printf("\r\n=======================\r\n");
+    ecm35xx_printf(" Release %s\r\n", CONFIG_SW_VERSION);
+    ecm35xx_printf(" Runnning: %s\r\n", CONFIG_APP_NAME);
+    ecm35xx_printf("=======================\r\n");
+}
 #endif
 
 /******************************************************************************
@@ -148,7 +152,7 @@ SystemInit(uint32_t ui32rVor)
     /*DSP and M3 at same freq*/
     cspSt = EtaCspBuckAllSet(iAoTarget,
                 eBuckM3FrequencyMode, (CONFIG_M3_INIT_FREQ * 1000),
-                eBuckDspFrequencyMode,  (CONFIG_M3_INIT_FREQ * 1000),
+                eBuckDspFrequencyMode,  (CONFIG_DSP_INIT_FREQ * 1000),
                 iMemTarget, true, true);
 #else
     cspSt = EtaCspBuckAllSet(iAoTarget,
@@ -173,7 +177,7 @@ SystemInit(uint32_t ui32rVor)
 #endif
 
 #ifdef CONFIG_DEBUG_UART
-    //printReleaseInfo();
+    printReleaseInfo();
 #endif
 #ifdef CONFIG_RPC
     rpcInit();
@@ -221,8 +225,8 @@ uint8_t IRQRamVectors[512];
 void RelocateVectorsToRam(void)
 {
     __asm volatile ( "cpsid i" );
-	SCB->VTOR = (uint32_t) &IRQRamVectors;
-	__DSB();
+    SCB->VTOR = (uint32_t) &IRQRamVectors;
+    __DSB();
     __asm volatile ( "cpsie i" );
 }
 #endif

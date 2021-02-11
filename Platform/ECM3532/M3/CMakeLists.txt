@@ -138,7 +138,11 @@ endif()
 if(EXISTS "${PROJ_DIR}/../../../Thirdparty/FreeRTOS")
     add_library(freertos "${Kconfiglib_HEADER_OUTPUT}/config.h")
     SET_TARGET_PROPERTIES(freertos PROPERTIES LINKER_LANGUAGE C)
+if (${FORCE_OPT_SIZE})
+    SET_TARGET_PROPERTIES(freertos PROPERTIES COMPILE_FLAGS "-Os")
+else ()
     SET_TARGET_PROPERTIES(freertos PROPERTIES COMPILE_FLAGS "-O3")
+endif ()
     set(freertoslib freertos)
 else ()
     find_library(freertoslib freertos HINTS ${PROJ_DIR}/pre_built)
@@ -152,7 +156,11 @@ if (_rpcen)
     if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/framework/rpc/src")
         add_library(rpc "${Kconfiglib_HEADER_OUTPUT}/config.h")
         SET_TARGET_PROPERTIES(rpc PROPERTIES LINKER_LANGUAGE C)
+if (${FORCE_OPT_SIZE})
+        SET_TARGET_PROPERTIES(rpc PROPERTIES COMPILE_FLAGS  "-Os")
+else ()
         SET_TARGET_PROPERTIES(rpc PROPERTIES COMPILE_FLAGS  "-O3")
+endif ()
         set(rpclib rpc)
         target_link_libraries(${rpclib} LINK_PUBLIC ${freertoslib} ${hallib})
     else ()
@@ -166,7 +174,11 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/hw/hal/${socname}/uart/src" OR
         EXISTS "${CMAKE_CURRENT_LIST_DIR}/hw/hal/common/uart/src")
     add_library(hal "${Kconfiglib_HEADER_OUTPUT}/config.h")
     SET_TARGET_PROPERTIES(hal PROPERTIES LINKER_LANGUAGE C)
+if (${FORCE_OPT_SIZE})
+    SET_TARGET_PROPERTIES(hal PROPERTIES COMPILE_FLAGS "-Os")
+else ()
     SET_TARGET_PROPERTIES(hal PROPERTIES COMPILE_FLAGS "-O3")
+endif ()
     target_link_libraries(hal LINK_PUBLIC ${csplib} ${freertoslib} ${rpclib})
     set(hallib hal)
 else ()
@@ -210,7 +222,11 @@ if (_smen)
     if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/framework/sensor_mgr/src")
         add_library(sm "${Kconfiglib_HEADER_OUTPUT}/config.h")
         SET_TARGET_PROPERTIES(sm PROPERTIES LINKER_LANGUAGE C)
+if (${FORCE_OPT_SIZE})
+        SET_TARGET_PROPERTIES(sm PROPERTIES COMPILE_FLAGS  "-Os")
+else ()
         SET_TARGET_PROPERTIES(sm PROPERTIES COMPILE_FLAGS  "-O3")
+endif ()
         set(smlib sm)
         target_link_libraries(${smlib} LINK_PUBLIC ${freertoslib} ${hallib})
     else ()
@@ -220,13 +236,33 @@ if (_smen)
     endif()
 endif()
 
+GETCONFIG(sproto "SERIAL_PROTOCOL")
+string(COMPARE EQUAL "${sproto}" y _sproto)
+if (_sproto)
+    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/framework/serial_proto/src")
+        add_library(sproto "${Kconfiglib_HEADER_OUTPUT}/config.h")
+        SET_TARGET_PROPERTIES(sproto PROPERTIES LINKER_LANGUAGE C)
+if (${FORCE_OPT_SIZE})
+        SET_TARGET_PROPERTIES(sproto PROPERTIES COMPILE_FLAGS  "-Os")
+else ()
+        SET_TARGET_PROPERTIES(sproto PROPERTIES COMPILE_FLAGS  "-O3")
+endif ()
+        set(sprotolib sproto)
+        target_link_libraries(${sprotolib} LINK_PUBLIC ${freertoslib} ${hallib})
+    endif()
+endif()
+
 GETCONFIG(pmen "PM_ENABLE")
 string(COMPARE EQUAL "${pmen}" y _pmen)
 if (_pmen)
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/hw/power/${socname}/src")
     add_library(pm "${Kconfiglib_HEADER_OUTPUT}/config.h")
     SET_TARGET_PROPERTIES(pm PROPERTIES LINKER_LANGUAGE C)
+if (${FORCE_OPT_SIZE})
+    SET_TARGET_PROPERTIES(pm PROPERTIES COMPILE_FLAGS  "-Os")
+else ()
     SET_TARGET_PROPERTIES(pm PROPERTIES COMPILE_FLAGS  "-O3")
+endif ()
     set(pmlib pm)
     target_link_libraries(${pmlib} LINK_PUBLIC ${csplib} ${freertoslib} ${hallib})
 else ()
@@ -237,7 +273,11 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/hw/drivers")
         add_library(iodev "${Kconfiglib_HEADER_OUTPUT}/config.h")
         SET_TARGET_PROPERTIES(iodev PROPERTIES LINKER_LANGUAGE C)
+if (${FORCE_OPT_SIZE})
+        SET_TARGET_PROPERTIES(iodev PROPERTIES COMPILE_FLAGS  "-Os")
+else ()
         SET_TARGET_PROPERTIES(iodev PROPERTIES COMPILE_FLAGS  "-O3")
+endif ()
         set(iodevlib iodev)
         target_link_libraries(${iodevlib} LINK_PUBLIC ${freertoslib} ${hallib})
     else ()
@@ -246,7 +286,11 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/hw/drivers")
 endif()
 
 add_executable(${PROJECT_NAME}.elf "")
+if (${FORCE_OPT_SIZE})
+SET_TARGET_PROPERTIES(${PROJECT_NAME}.elf PROPERTIES COMPILE_FLAGS "-Os")
+else ()
 SET_TARGET_PROPERTIES(${PROJECT_NAME}.elf PROPERTIES COMPILE_FLAGS "-O3")
+endif ()
 
 
 
@@ -258,7 +302,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ App)
 
 get_property(plib GLOBAL PROPERTY plib_list_property)
 set_property(GLOBAL PROPERTY plib_list_property
-        "${plib};${azurelib};${freertoslib};${hallib};${csplib};${pmlib};${rpclib};${smlib};${iodevlib};${executorlib};${edgeimpulselib};")
+        "${plib};${azurelib};${freertoslib};${hallib};${csplib};${pmlib};${rpclib};${smlib};${iodevlib};${executorlib};${sprotolib};${edgeimpulselib};")
 get_property(plib GLOBAL PROPERTY plib_list_property)
 target_link_libraries(${PROJECT_NAME}.elf LINK_PUBLIC ${plib})
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
@@ -272,7 +316,12 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_OBJDUMP} 
 -x -S -d ${PROJECT_NAME}.elf> ${LIST_FILE}
         COMMENT "Building ${HEX_FILE}
-\nBuilding ${BIN_FILE} Building ${LIST_FILE}")
+\nBuilding ${BIN_FILE} Building ${LIST_FILE}"
+    )
+
+CONFIGVAL(dsp_fw_loc "CONFIG_BUILD_DSP_FW")
+CONFIGVAL(dsp_fw_file "CONFIG_PRE_BUILD_DSP_FW")
+CONFIGVAL(dsp_fw_file_reloc "CONFIG_PRE_BUILD_DSP_FW_RELOCATED")
 
 add_custom_target(menuconfig
         COMMAND
@@ -288,7 +337,29 @@ add_custom_target(menuconfig
         cmake ..  >/dev/null
         COMMAND
         make ses
+        COMMAND
+        make dsp_update
         )
+
+if (_rpcen)
+add_custom_target(dsp_update
+        COMMAND
+        echo "DSP file found"
+        COMMAND
+        cp ${CMAKE_CURRENT_LIST_DIR}/util/dsp_fw/${dsp_fw_file} ${dsp_fw_file_reloc}
+        COMMAND
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/relocateStandaloneDSPBinary.py ${dsp_fw_file_reloc} ../${PROJECT_NAME}.ld
+        COMMAND
+        mv ${dsp_fw_file_reloc} ../${dsp_fw_file_reloc}
+        COMMAND
+        cp ../${dsp_fw_file_reloc} 03_dsp_fw.bin
+        COMMAND
+        touch ${CMAKE_CURRENT_LIST_DIR}/util/include/incbin.h
+        )
+else()
+add_custom_target(dsp_update
+        )
+endif()
 add_custom_target(loadconfig
         COMMAND
         ${CMAKE_COMMAND} -E env
@@ -300,6 +371,8 @@ add_custom_target(loadconfig
         COMMAND ${CMAKE_COMMAND} -E remove -f ${Kconfiglib_HEADER_OUTPUT}/config.h
         COMMAND
         make ses
+        COMMAND
+        make dsp_update
         )
 
 add_custom_command(OUTPUT ${Kconfiglib_HEADER_OUTPUT}/config.h PRE_LINK
@@ -311,11 +384,18 @@ add_custom_command(OUTPUT ${Kconfiglib_HEADER_OUTPUT}/config.h PRE_LINK
         COMMENT "genconfig file"
         )
 
+#execute_process(
+#        COMMAND
+#        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/copy_defconfig.py ../configs/
+#        COMMENT "copy defconfig files"
+#        )
+
 add_custom_command(OUTPUT ${APP_DIR}/${PROJECT_NAME}.ld
         MAIN_DEPENDENCY ${LINKER_SCRIPT} ${Kconfiglib_HEADER_OUTPUT}/config.h
         COMMAND ${CMAKE_C_COMPILER} -E ${LINKER_SCRIPT} -P
         -o ${APP_DIR}/${PROJECT_NAME}.ld -I ${APP_DIR}
         VERBATIM )
+
 
 if(${getsoc} STREQUAL "ecm3531")
     set (interface "ocd")
@@ -327,21 +407,72 @@ add_custom_target(load
         ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/scripts/program.py
         --ide=gcc --soc=${getsoc} --interface=${interface} --bin ${PROJECT_NAME}.bin --type s
         )
+
+add_custom_target(load_ocd
+        COMMAND
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/scripts/program.py
+        --ide=gcc --soc=${getsoc} --interface=ocd --bin ${PROJECT_NAME}.bin --type s
+        )
+
 add_custom_target(flash
         COMMAND
         ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/scripts/program.py
         --ide=gcc --soc=${getsoc} --interface=${interface} --bin ${PROJECT_NAME}.bin --type f
         )
 
+add_custom_target(flash_app
+        COMMAND
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/scripts/program.py
+        --ide=gcc --soc=${getsoc} --interface=${interface} --bin ${PROJECT_NAME}.bin --type a
+        )
+
+add_custom_target(flash_ocd
+        COMMAND
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/scripts/program.py
+        --ide=gcc --soc=${getsoc} --interface=ocd --bin ${PROJECT_NAME}.bin --type f
+        )
+
+GETCONFIG(blapp "BOOTLOADER_APP")
+string(COMPARE EQUAL "${blapp}" y _blapp)
+GETCONFIG(blen "BOOTLOADER")
+string(COMPARE EQUAL "${blen}" y _blen)
+
+if (_blapp)
 add_custom_target(flash_bl
         COMMAND
-        sh ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/flash_linux.sh
+        sh ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/app_flash.sh ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/../DSP/app/${dsp_fw_loc}/build/dsp_fw.bin
         )
+
+add_custom_target(flash_ses_bl
+        COMMAND
+        sh ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/app_flash.sh ${PROJECT_BINARY_DIR}/${PROJECT_NAME}_Debug/${PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/../DSP/app/${dsp_fw_loc}/build/dsp_fw.bin
+        )
+endif()
+
+if (${FORCE_OPT_SIZE})
+if (_blen)
+add_custom_target(bl_update
+        COMMAND
+        eta-flash-tool --firmware-path ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/bootloader_update_app.bin
+        COMMAND
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/genPartitionTable.py ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map 
+        COMMAND
+        cp bootloader.bin 02_m3_fw.bin
+        COMMAND
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/bl_download.py . 1
+        )
+endif()
+endif()
 
 add_custom_target(erase
         COMMAND
         ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/scripts/program.py
         --ide=gcc --soc=${getsoc} --interface=${interface} --bin ${PROJECT_NAME}.bin -me
+        )
+add_custom_target(erase_ocd
+        COMMAND
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/scripts/program.py
+        --ide=gcc --soc=${getsoc} --interface=ocd --bin ${PROJECT_NAME}.bin -me
         )
 
 add_custom_target(distclean
@@ -370,13 +501,13 @@ endif ()
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/SEGGER/genSESproject.cmake")
 
-get_property(dspfw_file GLOBAL PROPERTY dspfw_property)
-#set(dspfw_file /home/arjan/Documents/EdgeImpulse/Boards/EtaCompute/TensaiFlow_rc_alpha_plus-0.1/Platform/ECM3532/M3/util/dsp_fw/dsp_fw_pdm.c)
-message("dspfw ${dspfw_file}")
-CONFIGVAL(dsp_fw "CONFIG_DSP_FW")
-
+if (_rpcen)
+  get_property(dspfw_file GLOBAL PROPERTY dspfw_property)
+  message("dspfw ${dspfw_file}")
+endif()
 
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../DSP")
+    CONFIGVAL(dsp_fw "CONFIG_BUILD_DSP_FW")
     set (dspapp "${CMAKE_CURRENT_LIST_DIR}/../DSP/app/${dsp_fw}")
     set (dspcfg "${CMAKE_CURRENT_LIST_DIR}/../DSP/configs/${dsp_fw}_dsp_defconfig")
     include(ExternalProject)
@@ -388,11 +519,11 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../DSP")
         COMMAND ${CMAKE_COMMAND} -E touch ${dspapp}/CMakeLists.txt
         COMMAND cmake .. && make loadconfig CONFIG=${dspcfg} && make
         INSTALL_COMMAND
-        COMMAND ${CMAKE_COMMAND} -E copy ${dspapp}/build/dsp_fw.c ${dspfw_file}
+        COMMAND ${CMAKE_COMMAND} -E copy ${dspapp}/build/dsp_fw.bin ${dspfw_file}
         DEPENDS autoconf
         EXCLUDE_FROM_ALL 1
         )
-    add_custom_target(dsp DEPENDS dsp_fw COMMAND cmake ..)
+    add_custom_target(dsp DEPENDS dsp_fw COMMAND cmake .. && make dsp_update)
     ExternalProject_Add(dsp_src
         SOURCE_DIR ${dspapp}
         BINARY_DIR ${dspapp}/build
@@ -403,7 +534,15 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../DSP")
         COMMAND ${CMAKE_COMMAND} -E copy ${dspapp}/build/DSP.tar.gz ${PROJECT_BINARY_DIR}/
         DEPENDS autoconf
         EXCLUDE_FROM_ALL 1
+        COMMAND
+        make dsp_update
         )
+    add_custom_target(dsp_clean
+        COMMAND
+        rm -rf ${PROJECT_BINARY_DIR}/dsp_fw-prefix/
+        COMMAND
+        rm -rf ${PROJECT_BINARY_DIR}/dsp_src-prefix/
+    )
       add_custom_target(src_package_all
         COMMAND make loadconfig CONFIG=../../../Platform/ECM3532/M3/configs/src_package_all_defconfig
         COMMAND make dsp_src

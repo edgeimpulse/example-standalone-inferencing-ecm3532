@@ -172,6 +172,31 @@ clear_bss_loop:
         strne r0, [r1], #4
         bne clear_bss_loop
 
+clear_heap:
+        ldr r0, =0
+        ldr r1, =__heap_start__
+        ldr r2, =__heap_end__
+clear_heap_loop:
+        cmp r1, r2
+    it ne
+        strne r0, [r1], #4
+        bne clear_heap_loop
+
+#if (defined (CONFIG_FLASH_RELOCATE) ||  defined (CONFIG_FLASH_SHM_RELOCATE)) && defined (CONFIG_PBUF_IN_RAM)
+copy_pbuf:
+        ldr r0, =__pbuf_load
+        ldr r1, =__pbuf_start
+        ldr r2, =_epbuf
+        cmp r0, r1
+        beq call_sysinit
+copy_pbuf_loop:
+        cmp r1, r2
+    itt ne
+        ldrne r3, [r0], #4
+        strne r3, [r1], #4
+        bne copy_pbuf_loop
+#endif
+
 call_sysinit:
     cpsie i
     ldr r0, = g_pfnVectors

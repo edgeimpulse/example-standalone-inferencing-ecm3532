@@ -2,14 +2,15 @@ OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 ENTRY(Reset_Handler)
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x01000000, LENGTH = 0x80000
-    RAM (rwx) : ORIGIN = 0x10000000, LENGTH = (0x40000 - 0x200)
-    SHM (rwx) : ORIGIN = (0x10000000 + (0x40000 - 0x200)), LENGTH = 0x200
+    FLASH (rx) : ORIGIN = 0x01000000, LENGTH = (0x80000 - 0x16000)
+    DSP (rx) : ORIGIN = (0x01000000 + (0x80000 - 0x16000)), LENGTH = 0x16000
+    RAM (rwx) : ORIGIN = 0x10000000, LENGTH = (0x40000 - (20000))
+    HEAP (rwx) : ORIGIN = (0x10040000 - (20000)), LENGTH = 20000
 }
 _estack = ORIGIN(RAM) + LENGTH(RAM) - 0x20;
 SECTIONS
 {
-  .text :
+   .text :
   {
         __text = .;
         __text_load = LOADADDR(.text);
@@ -17,10 +18,9 @@ SECTIONS
         __text_start = .;
         KEEP(*(.isr_vector))
         __isr_vector_end = .;
-        *(EXCLUDE_FILE(*eta_csp_buck*.o *eta_csp_dsp*.o *ssd_detection*.o
-            *qfplib-m3*.o *stats*.o *printf-stdarg*.o *ecm3532_pinconfig*.o
-            *board_config*.o *system_ecm3532*.o *uart_hal*.o *eta_csp_uart*.o
-            *eta_csp_flash*.o *eta_csp*.o *libgcc.a) .text* .rodata*)
+        *(.text*)
+        KEEP(*(.init))
+        KEEP(*(.fini))
         *crtbegin.o(.ctors)
         *crtbegin?.o(.ctors)
         *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
@@ -45,17 +45,18 @@ SECTIONS
     } > FLASH= 0
     __exidx_end = .;
     _etext = .;
-    .shmSectionBlock (NOLOAD) :
+    .binSectionBlock :
     {
-        __SHM_SECTION_START = .;
-        KEEP(*(.shmSection))
-        __SHM_SECTION_END = .;
-    } > SHM
+        __BIN_SECTION_START = .;
+        KEEP(*(.binSection))
+        __BIN_SECTION_END = .;
+    } > FLASH
+    _sidata = LOADADDR(.data);
     .data :
     {
         . = ALIGN(4);
-         _sidata = LOADADDR(.data);
         __data_load = LOADADDR(.data);
+        _sdata = .;
         __data_start = .;
         *(vtable)
         *(.data*)
@@ -95,32 +96,19 @@ SECTIONS
     {
         *(.stack*)
     } > RAM
-    .binSectionBlock :
+    .appHeapBlock (NOLOAD) :
     {
-        __BIN_SECTION_START = .;
-        KEEP(*(.binSection))
-        KEEP(*(.init))
-        KEEP(*(.fini))
-            __BIN_SECTION_END = .;
-    } > FLASH
-    .initSection :
+        __heap_start__ = .;
+        *(.appHeap*)
+        __heap_end__ = .;
+    } > HEAP
+    .dspBlock :
     {
-        *eta_csp_buck*.o(.text* .rodata*)
-        *eta_csp_dsp*.o(.text* .rodata*)
-        *ssd_detection*.o(.text* .rodata*)
-        *qfplib-m3*.o(.text* .rodata*)
-        *stats*.o(.text* .rodata*)
-        *arm_addsubsf3*.o(.text* .rodata*)
-        *_arm_fixsfsi*.o(.text* .rodata*)
-        *printf-stdarg*.o(.text* .rodata*)
-        *ecm3532_pinconfig*.o(.text* .rodata*)
-        *board_config*.o(.text* .rodata*)
-        *system_ecm3532*.o(.text* .rodata*)
-        *uart_hal*.o(.text* .rodata*)
-        *eta_csp_uart*.o(.text* .rodata*)
-        *eta_csp_flash*.o(.text* .rodata*)
-        *eta_csp*.o(.text* .rodata*)
-        *libgcc.a:*
+        KEEP(*(.dsp))
+    } > DSP
+    .pbufBlock :
+    {
+        KEEP(*(.pbuf))
     } > FLASH
     __StackTop = ORIGIN(RAM) + LENGTH(RAM) - 4;
     __StackLimit = __StackTop - SIZEOF(.stack_dummy) ;

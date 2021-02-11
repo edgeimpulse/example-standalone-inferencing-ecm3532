@@ -28,5 +28,8 @@ int main(void)
     initializeSharedMemory();
     MsgQueueInit(&dspMsgQ);
     createAudioTask();
+#ifdef CONFIG_EXECUTOR
+    createExecutorTask();
+#endif
     DspTaskSchedule();
 }

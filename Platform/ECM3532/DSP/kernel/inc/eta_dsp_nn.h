@@ -343,6 +343,14 @@ eta_rc eta_conv2d_q7_chw_ker3x3_stride2_pad0_relu(
     int *out
     );
 
+eta_rc eta_conv2d_q7_chw_ker3x3_stride2_pad0_relu_hwc(
+    int _XMEM *Im_in,
+    int chess_storage(YMEM) *wt,
+    int _YMEM *bias,  //bias vector size = # kernels = dim_ch_out
+    conv2d_opt_st* opt_st,
+    int *out
+    );
+
 /*
  * @brief Q7 depthwise convolution function for 3x3 kernel and stride 2, input format CHW
  * @param[in]       Im_in        pointer to input tensor in X memory
@@ -358,6 +366,14 @@ eta_rc eta_conv2d_q7_chw_ker3x3_stride2_pad0_relu(
  */
 
 eta_rc eta_ds_conv2d_q7_chw_ker3x3_stride2_pad0_relu(
+    int _XMEM *Im_in,
+    int chess_storage(YMEM) *wt,
+    int _YMEM *bias,  //bias vector size = # kernels = dim_ch_out
+    conv2d_opt_st* opt_st,
+    int *out
+    );
+
+eta_rc eta_ds_conv2d_q7_chw_ker3x3_stride2_pad0_relu_hwc(
     int _XMEM *Im_in,
     int chess_storage(YMEM) *wt,
     int _YMEM *bias,  //bias vector size = # kernels = dim_ch_out
@@ -424,6 +440,14 @@ eta_rc eta_conv2d_q7_chw_ker3x3_stride1_pad0_relu(
  */
 
 eta_rc eta_ds_conv2d_q7_chw_ker3x3_stride1_pad0_relu(
+    int _XMEM *Im_in,
+    int chess_storage(YMEM) *wt,
+    int _YMEM *bias,  //bias vector size = # kernels = dim_ch_out
+    conv2d_opt_st* opt_st,
+    int *out
+    );
+
+eta_rc eta_ds_conv2d_q7_chw_ker3x3_stride1_pad0_relu_hwc(
     int _XMEM *Im_in,
     int chess_storage(YMEM) *wt,
     int _YMEM *bias,  //bias vector size = # kernels = dim_ch_out

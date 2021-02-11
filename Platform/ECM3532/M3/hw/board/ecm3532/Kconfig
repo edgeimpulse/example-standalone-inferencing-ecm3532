@@ -3,31 +3,42 @@ comment "Board specific configuration"
 comment "Select Target Board, Some APP are specific to Board"
 choice ECM3532_TARGET_BOARD
     prompt "Select Target Board"
-    config EVB_BOARD
-        bool "ECM3532EVB"
-        if EVB_BOARD
-            orsource "evb/Kconfig"
+if !DISABLE_AI_VISION_BRD
+    config AI_VISION_BOARD
+        bool "ECM3532_AI_VISION_BOARD"
+        if AI_VISION_BOARD
+            orsource "ai_vision/Kconfig"
         endif
-
+endif
+if !DISABLE_AI_VISION_EXT_BRD && !BOOTLOADER_APP
+    config AI_VISION_EXTENSION_BOARD
+        bool "ECM3532_AI_VISION_EXTENSION_BOARD"
+        if AI_VISION_EXTENSION_BOARD
+            orsource "ai_vision_extension/Kconfig"
+        endif
+endif
+if !DISABLE_AI_SENSOR_BRD
     config AI_SENSOR_BOARD
         bool "ECM3532_AI_SENSOR_BOARD"
         select UART_1
         if AI_SENSOR_BOARD
             orsource "ai_sensor/Kconfig"
         endif
-
-    config AI_VISION_EXTENSION_BOARD
-        bool "ECM3532_AI_VISION_EXTENSION_BOARD"
-        if AI_VISION_EXTENSION_BOARD
-            orsource "ai_vision_extension/Kconfig"
+endif
+if !DISABLE_EVB_BRD && !BOOTLOADER_APP
+    config EVB_BOARD
+        bool "ECM3532EVB"
+        if EVB_BOARD
+            orsource "evb/Kconfig"
         endif
-
+endif
 endchoice
 config ECM3532_TARGET_BOARD
     string
     default "evb" if EVB_BOARD
     default "ai_sensor" if AI_SENSOR_BOARD
     default "ai_vision_extension" if AI_VISION_EXTENSION_BOARD
+    default "ai_vision" if AI_VISION_BOARD
 
 config BUTTON_GPIO
     bool "push button gpio"
@@ -126,18 +137,15 @@ config PIN3_MUX
 
 choice PIN4_MUX
     bool "PIN4_MUX"
+    default PIN4_FUNC_UART1RTS
 config PIN4_FUNC_GPIO4
     bool "PIN4_FUNC_GPIO4"
-    depends on !AI_SENSOR_BOARD
 config PIN4_FUNC_PWMCH4
     bool "PIN4_FUNC_PWMCH4"
-    depends on !AI_SENSOR_BOARD
 config PIN4_FUNC_UART1DBGB
     bool "PIN4_FUNC_UART1DBGB"
-    depends on !AI_SENSOR_BOARD
 config PIN4_FUNC_UART1RTS
     bool "PIN4_FUNC_UART1RTS"
-    depends on AI_SENSOR_BOARD
 endchoice
 config PIN4_MUX
     int
@@ -148,18 +156,15 @@ config PIN4_MUX
 
 choice PIN5_MUX
     bool "PIN5_MUX"
+    default PIN5_FUNC_UART1CTS
 config PIN5_FUNC_GPIO5
     bool "PIN5_FUNC_GPIO5"
-    depends on !AI_SENSOR_BOARD
 config PIN5_FUNC_PWMCH5
     bool "PIN5_FUNC_PWMCH5"
-    depends on !AI_SENSOR_BOARD
 config PIN5_FUNC_UART1DBGA
     bool "PIN5_FUNC_UART1DBGA"
-    depends on !AI_SENSOR_BOARD
 config PIN5_FUNC_UART1CTS
     bool "PIN5_FUNC_UART1CTS"
-    depends on AI_SENSOR_BOARD
 endchoice
 config PIN5_MUX
     int

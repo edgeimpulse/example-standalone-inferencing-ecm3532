@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../config.h
+
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/system/ecm3532/src/startup_ecm3532.s
+config.h
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/system/ecm3532/src/config.h
+

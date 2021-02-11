@@ -1,0 +1,13 @@
+# Target labels
+ dsp_fw
+# Source files and their labels
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_fw
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_fw.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/CMakeFiles/dsp_fw-complete.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-install.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-mkdir.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-download.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-update.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-patch.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-configure.rule
+/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Applications/edge-impulse-standalone/build2/dsp_fw-prefix/src/dsp_fw-stamp/dsp_fw-build.rule

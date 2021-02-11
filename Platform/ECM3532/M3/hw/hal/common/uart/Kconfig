@@ -124,7 +124,7 @@ choice DEBUG_UART
     depends on (UART_0 && (EVB_BOARD || AI_VISION_EXTENSION_BOARD))
   config DEBUG_UART_1
     bool "Debug Uart 1"
-    depends on (UART_1 && (AI_SENSOR_BOARD || EVB_BOARD || AI_VISION_EXTENSION_BOARD))
+    depends on (UART_1 && (AI_SENSOR_BOARD || EVB_BOARD || AI_VISION_EXTENSION_BOARD || AI_VISION_BOARD))
   endchoice
 config DEBUG_UART
   int

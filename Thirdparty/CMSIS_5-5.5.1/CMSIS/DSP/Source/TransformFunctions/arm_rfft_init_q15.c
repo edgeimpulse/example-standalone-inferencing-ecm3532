@@ -2180,13 +2180,14 @@ arm_status arm_rfft_init_q15(
 
     /*  Initialize the Flag for calculation Bit reversal or not */
     S->bitReverseFlagR = (uint8_t) bitReverseFlag;
-#if 1
+#if 0
     S->twidCoefRModifier = 16U;
     S->pCfft = &arm_cfft_sR_q15_len256;
-#else
+#endif
     /*  Initialization of coef modifier depending on the FFT length */
     switch (S->fftLenReal)
     {
+#if 0
     case 8192U:
         S->twidCoefRModifier = 1U;
         S->pCfft = &arm_cfft_sR_q15_len4096;
@@ -2199,6 +2200,7 @@ arm_status arm_rfft_init_q15(
         S->twidCoefRModifier = 4U;
         S->pCfft = &arm_cfft_sR_q15_len1024;
         break;
+#endif
     case 1024U:
         S->twidCoefRModifier = 8U;
         S->pCfft = &arm_cfft_sR_q15_len512;
@@ -2228,7 +2230,7 @@ arm_status arm_rfft_init_q15(
         status = ARM_MATH_ARGUMENT_ERROR;
         break;
     }
-#endif
+
     /* return the status of RFFT Init function */
     return (status);
 }

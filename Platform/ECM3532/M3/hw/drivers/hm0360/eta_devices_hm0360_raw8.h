@@ -32,7 +32,7 @@
 // ---------------------------------------------------
 // The following initialization array was obtained from Himax.
 // ---------------------------------------------------
-const uint16_t HM0360_HIMAX_INIT[][2] =
+const uint16_t HM0360_HIMAX_INIT[][2] __attribute__((section(".initSection")))=
 {
     {0x0370,0x01},
     {0x0371,0x01},

@@ -2,6 +2,7 @@
 #include "eta_csp_dsp.h"
 #include "print_util.h"
 #include "rpc.h"
+#include "incbin.h"
 #include "module_common.h"
 #include <stdint.h>
 
@@ -150,12 +151,14 @@ void EtaCspDspPrintViaM3Ex(uint32_t ui32Addr)
                 "characters \r\n");
         return;
     }
-
 }
 
 __attribute__((section(".initSection"))) void LoadDsp(void)
 {
-    EtaCspDspLoaderSimple (&dsp_mem);
+    extern void* incbin_dsp_start;
+    tDspMem* dspPtr = 0;
+    dspPtr = (tDspMem*)(&incbin_dsp_start);
+    EtaCspDspLoaderSimple (dspPtr);
 }
 
 int DspDbgEventHandler(uint32_t low32, uint32_t high32)
@@ -163,6 +166,7 @@ int DspDbgEventHandler(uint32_t low32, uint32_t high32)
     EtaCspDspPrintViaM3Ex(high32);
     return 0;
 }
+
 void DspdbgInit(void)
 {
     rpcRegisterEventCb(RPC_MODULE_ID_DEBUG, DspDbgEventHandler);

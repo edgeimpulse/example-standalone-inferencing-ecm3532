@@ -525,6 +525,7 @@ tHalTmr * HalTmrCreate(tHalTmrCh iTmrCh, tHalTmrType iTmrType,
         (tHalTmr *)pvPortMalloc(sizeof(tHalTmr));
     if(sHalNewTmr == NULL)
         return NULL;
+    memset(sHalNewTmr,0,sizeof(tHalTmr));
     sHalNewTmr->iTmrTyp = iTmrType;
     sHalNewTmr->ui32TmrPrd = ui32TmrPrd;
     sHalNewTmr->fTmrCb = fCbFun;

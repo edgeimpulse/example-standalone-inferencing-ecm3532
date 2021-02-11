@@ -1,7 +1,7 @@
     set (DOXYGEN_PROJECT_NAME "TENSAI\" \"Flow\" \"Platform\" \"SW\" \"API")
     set(DOXYGEN_PROJECT_NUMBER "${PKG_NAME}_${VERSION}")
     set( DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../../../../Docs/API/doxy")
-    set (DOXYGEN_INPUT "index.md ../hw/hal/common/include ../hw/drivers/spi_flash/common/spi_flash.h ../hw/hal/${getsoc}/include ../../Common/sensor_mgr/inc/sal.h")
+    set (DOXYGEN_INPUT "index.md ../hw/hal/common/include ../hw/drivers/spi_flash/common/spi_flash.h ../hw/drivers/opt3001/eta_devices_opt3001.h ../hw/hal/${getsoc}/include ../../Common/sensor_mgr/inc/sal.h ../framework/serial_proto/include/serial_proto.h")
     set(DOXYGEN_DOXYFILE_ENCODING UTF-8)
     set(DOXYGEN_INPUT_ENCODING UTF-8)
     set(DOXYGEN_ALLOW_UNICODE_NAMES NO)

@@ -71,7 +71,7 @@ typedef struct {
  * This need to be called before HalSpiXfer, this will also ensure exclusive
  * access for SPI slave
  *
- * @param ui8SpiNum SPI bus number to be initialize
+ * @param ui8Spi SPI bus number to be initialize
  * @param ui32CSGpio Gpio pin connected to slave CS pin
  * @param CSLevel CS active level
  *
@@ -82,7 +82,7 @@ void HalSpiAssertCS(uint8_t ui8Spi, uint32_t ui32CSGpio, tSpiCSActiveLevel CSLev
  * GPIO pin should have configured to OUTPUT pin
  * This need to be called after HalSpiXfer, this will release lock
  *
- * @param ui8SpiNum SPI bus number to be initialize
+ * @param ui8Spi SPI bus number to be initialize
  * @param ui32CSGpio Gpio pin connected to slave CS pin
  *
  */

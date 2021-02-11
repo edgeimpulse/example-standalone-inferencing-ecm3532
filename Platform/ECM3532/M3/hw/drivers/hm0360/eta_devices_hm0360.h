@@ -162,7 +162,7 @@ tHm0360Mode;
  ******************************************************************************/
 void EtaDevicesHm0360Init(void);
 
-uint32_t EtaDevicesHm0360OneFrameReadBlocking(int8_t *pui8Frame);
+uint32_t EtaDevicesHm0360OneFrameReadBlocking(uint8_t *pui8Frame);
 
 #ifdef __cplusplus
 }

@@ -55,6 +55,14 @@ void board_init(void)
     SensorStubDriverBoardInit();
 #endif
 
+#ifdef CONFIG_CAM_HM0360
+    HalGpioOutInit(PIN0, 1);
+    HalGpioOutInit(PIN6, 0);
+    HalGpioInInit(PIN12, 0);
+#endif
+
+
+
 #ifdef CONFIG_SENSOR_MANAGER
     SalInit();
 #endif

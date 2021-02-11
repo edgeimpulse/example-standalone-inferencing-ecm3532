@@ -17,9 +17,21 @@ config CAM_HM0360
     endif
 config SPI_FLASH
 	bool "External SPI Flash"
-	depends on (AI_SENSOR_BOARD || AI_VISION_EXTENSION_BOARD) && SPI_1_MASTER
+	depends on (AI_SENSOR_BOARD || AI_VISION_EXTENSION_BOARD || AI_VISION_BOARD) && SPI_1_MASTER
     default y
     if SPI_FLASH
     orsource "spi_flash/Kconfig"
+    endif
+config ALS_OPT3001
+    bool "Ambient Light Sensor"
+    depends on (AI_VISION_BOARD || AI_VISION_EXTENSION_BOARD) && I2C_1
+    if ALS_OPT3001
+    orsource "opt3001/Kconfig"
+    endif
+config BLE_A31R118
+    bool "Ble uart module"
+    depends on (AI_VISION_BOARD || AI_SENSOR_BOARD)
+    if BLE_A31R118
+    orsource "abov/Kconfig"
     endif
 endmenu

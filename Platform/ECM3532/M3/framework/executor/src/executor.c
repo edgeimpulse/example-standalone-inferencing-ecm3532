@@ -12,6 +12,9 @@
 #include "semphr.h"
 #include "task.h"
 #include <stdbool.h>
+
+#define GET_HIGH_16(X) ((((uint32_t)(X)) & 0xFFFF0000) >> 16)
+#define GET_LOW_16(X)  (((uint32_t)(X))& 0x0000FFFF)
 #define CONFIG_TASK_NOTIFY
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 #define DIV_ROUND_DOWN (n,d) ((n)/ (d))
@@ -56,6 +59,7 @@ static ExecStatus eta_conv2d_q7_CHW_ker3x3_stride1_pad0_relu_avgPool_2x2_stride2
 #endif
 static  ExecStatus eta_pw_conv2d_q7_hwc_dsp( const q7_t *  inArray,  const q7_t *  wt, const q7_t * bias,  q7_t *  outArray,  q7_t *  buffIn,   conv2d_opt opt, int8_t fast);
 static ExecStatus  eta_conv2d_q7_chw_relu_dsp (const q7_t * inArray,  const q7_t *  wt, const q7_t * bias,  q7_t *  outArray,  q7_t *  buffIn,  conv2d_opt opt, uint8_t opID, uint8_t depthwise);
+static ExecStatus  eta_conv2d_q7_chw_relu_dsp_inplace (q7_t * inArray,  const q7_t *  wt, const q7_t * bias, q7_t *  buffIn, conv2d_opt opt, uint8_t opID, uint8_t variant);
 #ifdef EXEC_DBG
 void dumpToStdout ( char * arrayname, ExecOperand_t * array )
 {
@@ -409,6 +413,22 @@ ExecStatus  __attribute__((optimize("O3"))) ExecAllocMem(ExecOperand_t  *p, void
       return status;
   }
 
+ExecStatus  __attribute__((optimize("O3"))) ExecReMapMem (ExecOperand_t  *p, void * baseAddr, uint32_t offset)
+{
+    ExecStatus status = EXEC_STATUS_ERR_MEM;
+    struct privateInfo *privinfo ;
+    int8_t * base =( int8_t*) baseAddr; ;
+    // first allocate the private structure
+    if (p->privInfo && baseAddr)
+    {
+        privinfo =  p->privInfo;
+        memset(privinfo, 0, sizeof(struct privateInfo));
+        privinfo->bufAddr =  (void *)  (base+ (((p->basetypeSize) +1) * offset));
+        status = EXEC_STATUS_OK;
+    }
+    return status;
+}
+
 static  void *  ExecAlloc (uint32_t size, uint8_t memType)
 {
     void * addr = 0;
@@ -732,7 +752,110 @@ static void ExecDspTask(void *pvParameters)
                 ExecCompleteWork(workIndex);
             }
             break;
+#if defined(CONFIG_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE1_PAD0_RELU_INPLACE) ||\
+    defined(CONFIG_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE2_PAD0_RELU_INPLACE)
+            case  EXEC_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE1_PAD0_RELU_INPLACE:
+            case  EXEC_OP_DSP_DS_CHW_3X3_CONV2D_STRIDE2_PAD0_RELU_INPLACE:
+            {
+                uint8_t variant = NORMAL_CONV_2D;
+                if (pWork->variant == DEPTHWISE_CONV_2D)
+                     variant = DEPTHWISE_CONV_2D;
 
+                exec_conv2d_q7_t *  params =  (exec_conv2d_q7_t *) ( pWork->params);
+
+                eta_conv2d_q7_chw_relu_dsp_inplace(( q7_t * )ExecGetBufAddr((pWork->inbufs)[0]),  ( const q7_t *) params->wt, (const q7_t *) params->bias, ( q7_t * )ExecGetBufAddr((pWork->inbufs)[1]),  ( conv2d_opt) (params->opt), pWork->opID,variant);
+                ExecCompleteWork(workIndex);
+            }
+            break;
+#endif
+#ifdef CONFIG_OP_DSP_FFT_Q15
+            case  EXEC_OP_DSP_MATH_FFT:
+            {
+                tExecutorRpcWork* rWork;
+                uint32_t addrIn, addrOut;
+
+                tDsp_math_fft_opt* params = (tDsp_math_fft_opt*)(pWork->params);
+                rWork = SharedMemAlloc(sizeof(tExecutorRpcWork));
+                if (!rWork) {
+                    ecm35xx_printf("Malloc Failed\r\n");
+                    break;
+                }
+
+                // Fill in the shared data structure with DSP
+                rWork->status = -1;
+                addrIn = (uint32_t)ExecGetBufAddr(pWork->inbufs[0]);
+                (rWork->inbuf).size = (uint16_t)(params->fft_length * sizeof(int16_t));
+                (rWork->inbuf).mapped = 0;
+
+                (rWork->inbuf).ahbAddrHi = GET_HIGH_16(addrIn);
+                (rWork->inbuf).ahbAddrLo = GET_LOW_16(addrIn);
+
+                /* twice of input buf for real and imaginary */
+                (rWork->outbuf).size = (uint16_t)((params->fft_length * sizeof(int16_t)) * 2);
+                (rWork->outbuf).mapped = 0;
+
+                addrOut = (uint32_t)ExecGetBufAddr(pWork->outBuf);
+
+                (rWork->outbuf).ahbAddrHi = GET_HIGH_16(addrOut);
+                (rWork->outbuf).ahbAddrLo = GET_LOW_16(addrOut);
+
+                memcpy(&rWork->params, params, sizeof(tDsp_math_fft_opt));
+                rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, pWork->opID, (void*)rWork);
+                xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+                SharedMemFree(rWork);
+                ExecCompleteWork(workIndex);
+
+                break;
+            }
+#endif
+#if defined(CONFIG_OP_DSP_SQRT_IN_Q15_OUT_Q15) || defined(CONFIG_OP_DSP_EXP_IN_Q15_OUT_Q3_13) || defined(CONFIG_OP_DSP_LOG_IN_Q15_OUT_Q5_11)
+#ifdef CONFIG_OP_DSP_SQRT_IN_Q15_OUT_Q15
+            case  EXEC_OP_DSP_MATH_SQRT:
+#endif
+#ifdef CONFIG_OP_DSP_EXP_IN_Q15_OUT_Q3_13
+            case  EXEC_OP_DSP_MATH_EXP:
+#endif
+#ifdef CONFIG_OP_DSP_LOG_IN_Q15_OUT_Q5_11
+            case  EXEC_OP_DSP_MATH_LOG:
+#endif
+            {
+                tExecutorRpcWork* rWork;
+                uint32_t addrIn, addrOut;
+
+                tDsp_math_func_opt* params = (tDsp_math_func_opt*)(pWork->params);
+                rWork = SharedMemAlloc(sizeof(tExecutorRpcWork));
+                if (!rWork) {
+                    ecm35xx_printf("Malloc Failed\r\n");
+                    break;
+                }
+
+                // Fill in the shared data structure with DSP
+                rWork->status = -1;
+                addrIn = (uint32_t)ExecGetBufAddr(pWork->inbufs[0]);
+                (rWork->inbuf).size = (uint16_t)(params->len * sizeof(int16_t));
+                (rWork->inbuf).mapped = 0;
+
+                (rWork->inbuf).ahbAddrHi = GET_HIGH_16(addrIn);
+                (rWork->inbuf).ahbAddrLo = GET_LOW_16(addrIn);
+
+                /* twice of input buf for real and imaginary */
+                (rWork->outbuf).size = (uint16_t)(params->len * sizeof(int16_t));
+                (rWork->outbuf).mapped = 0;
+
+                addrOut = (uint32_t)ExecGetBufAddr(pWork->outBuf);
+
+                (rWork->outbuf).ahbAddrHi = GET_HIGH_16(addrOut);
+                (rWork->outbuf).ahbAddrLo = GET_LOW_16(addrOut);
+
+                memcpy(&rWork->params, params, sizeof(tDsp_math_func_opt));
+                rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, pWork->opID, (void*)rWork);
+                xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+                SharedMemFree(rWork);
+                ExecCompleteWork(workIndex);
+
+                break;
+            }
+#endif
             default:
              ecm35xx_printf("unknown case   ...\r\n");
             //TBD: Error trace
@@ -802,8 +925,6 @@ uint16_t  g_outHeight, g_outWidth, g_outChannel;
 
 typedef int8_t * shMemBufPtr; //TBD: changes to int8_t once works
 typedef int16_t * shMemBufPtr16;
-#define GET_HIGH_16(X) ((((uint32_t)(X)) & 0xFFFF0000) >> 16)
-#define GET_LOW_16(X)  (((uint32_t)(X))& 0x0000FFFF)
 
 #define DSP_WEIGHT_BIAS_MEM_LIMIT              ( 15 *1024) // they go to Ymem , which is of  max 32K. 15 K on M3 side means 30K on DSP side.
 #define DSP_INOUT_MEM_LIMIT                             (12*1024) // they  go to Xmem, which is of max 32K, 12K M3 side means 24 K on DSP, rest is tack and others.
@@ -956,6 +1077,760 @@ static  ExecStatus eta_pw_conv2d_q7_hwc_dsp( const q7_t *  inArray,  const q7_t 
 #endif
 
 
+static ExecStatus  eta_conv2d_q7_chw_relu_dsp_inplace (q7_t * inArray,  const q7_t *  wt, const q7_t * bias, q7_t *  buffIn, conv2d_opt opt, uint8_t opID, uint8_t variant)
+{
+  //FIXME: update DSP kernel output format
+  q7_t * outArray = inArray;
+  uint16_t inHeight , inWidth, inChannel,
+           outHeight, outWidth, outChannel,
+           kernelHeight, kernelWidth,
+           stride,
+           pad, leftPad, topPad, rightPad, bottomPad;
+  tExecutorRpcWork  * execRpcWork = 0;
+  uint32_t inArraySize, weightArraySize, biasArraySize, outArraySize,partialInArraySize,partialOutArraySize;
+  uint32_t row_index = 0;
+  uint32_t index = 0;
+  uint32_t index1 = 0;
+  q7_t temp_holder;
+  int run_input_and_dsp_in_parallel = 1;
+  uint64_t start_ms, stop_ms;
+  //Make sure to change their types
+  shMemBufPtr dspInArray = 0;
+  shMemBufPtr dspInArray1 = 0;
+  shMemBufPtr dspWeight = 0;
+  shMemBufPtr dspBias  = 0;
+  shMemBufPtr  dspOutArray = 0;
+  int8_t * bitset = 0;
+  // find sizes of all of the arrays using the info present in opt
+  kernelHeight = opt.filt_rows;
+  kernelWidth = opt.filt_cols;
+  inHeight = opt.in_rows;
+  inWidth =  opt.in_cols;
+  inChannel = opt.in_depth;
+  outHeight = opt.out_rows;
+  outWidth = opt.out_cols;
+  outChannel = opt.num_filt;
+  // allocate memory from the shared memory
+  leftPad = opt.col_pad;
+  topPad = opt.row_pad;
+  rightPad = opt.out_cols -
+             (((opt.in_cols + (2 * opt.col_pad) - opt.filt_cols) / opt.col_stride) +1) +
+             opt.col_pad;
+  bottomPad = opt.out_rows -
+              (((opt.in_rows + (2 * opt.row_pad) - opt.filt_rows) / opt.row_stride) +1) +
+              opt.row_pad;
+
+
+  //inArraySize = inHeight*inWidth*inChannel;
+  inArraySize = (inWidth + leftPad + rightPad) * ( inHeight + topPad + bottomPad) * inChannel;
+  weightArraySize = kernelHeight*kernelWidth*inChannel * opt.num_filt;
+
+  if (variant == NORMAL_CONV_2D) {
+    biasArraySize = outChannel;
+  }
+  if (variant == DEPTHWISE_CONV_2D) {
+    biasArraySize = inChannel * opt.num_filt;
+    outChannel = inChannel * opt.num_filt;
+  }
+  outArraySize = outHeight * outWidth * outChannel;
+
+  //ecm35xx_printf(" here \r\n");
+  if ( ((weightArraySize + biasArraySize) > DSP_WEIGHT_BIAS_MEM_LIMIT)) {
+    //TBD: We need to handle this
+    ecm35xx_printf(" Weights do not fit in memory. This case is not handled yet !!! \r\n");
+  }
+
+  if (inArraySize/inChannel + outArraySize/outChannel > DSP_INOUT_MEM_LIMIT &&
+      inChannel != 1)
+  {
+    //ecm35xx_printf("Layer 3...\r\n");
+    // This block of code handles partitioning the input to patches and
+    // processing.
+    // First we are going to write code for a 3x3 kernel with stride of 1.
+    // Also, it only supports max padding of 1.
+    // Will expand to other sizes, strides, and padding later.
+    // W, H, C refers to the dimensions of the patch that will be processed
+    // in one iteration.
+    // We are going to send 2 patches together. Hence W is larger.
+
+    int outRowsPerIter = 1; // Must be 1
+    int outColsPerIter = 32;
+    if (opt.col_stride == 1) outColsPerIter = 64;
+    int W = opt.filt_cols + (opt.col_stride * (outColsPerIter - 1));
+    int H = opt.filt_rows + (opt.row_stride * (outRowsPerIter - 1));
+    int C = inChannel;
+    shMemBufPtr  tmpDspOutArray = 0;
+
+    //int nRowsPartialOutArray = (topPad/opt.row_stride + 1);
+    int nRowsPartialOutArray = 2;
+    partialInArraySize = W*H*C*2;
+    partialOutArraySize = nRowsPartialOutArray * outWidth * outChannel;
+
+    dspInArray = (  shMemBufPtr) pvPortMalloc(2*partialInArraySize*  (sizeof (dspInArray[0])));
+    //ecm35xx_printf(" dspInArray [%d]\r\n", partialInArraySize );
+    if ( ! dspInArray)
+      ecm35xx_printf("No memory for  dspInArray...\r\n");
+
+    /*dspInArray1 = (  shMemBufPtr) pvPortMalloc(partialInArraySize*  (sizeof (dspInArray[0])));
+    ecm35xx_printf(" dspInArray1 [%d]\r\n", partialInArraySize );
+    if ( ! dspInArray1)
+      ecm35xx_printf("No memory for  dspInArray1...\r\n");*/
+
+    dspOutArray = (  shMemBufPtr ) pvPortMalloc(partialOutArraySize*  (sizeof (dspOutArray[0])));
+    //ecm35xx_printf(" dspOutArray [%d]\r\n",partialOutArraySize);
+    if ( ! dspOutArray)
+      ecm35xx_printf("No memory for  dspOutArray...\r\n");
+
+    //dspWeight = (  shMemBufPtr ) pvPortMalloc(weightArraySize* (sizeof (dspWeight[0])));
+    //ecm35xx_printf(" dspWeight [%d]\r\n", weightArraySize);
+    //if ( ! dspWeight)
+    //{
+    //  ecm35xx_printf("No memory for  dspWeight...\r\n");
+    //}
+
+    //reorder_conv2d_kernel(( int8_t* ) wt, dspWeight,
+    //                      kernelHeight, kernelWidth,
+    //                      inChannel, outChannel);
+
+    execRpcWork = SharedMemAlloc(sizeof(tExecutorRpcWork));
+    //memset((void *) execRpcWork,0, sizeof(tExecutorRpcWork));
+    if (!execRpcWork) {
+      //TBD: Add trace message of error
+      return -1;
+    }
+
+    // Fill in the shared data structure with DSP
+    execRpcWork-> status = -1;
+    (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(dspInArray) ;
+    (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(dspInArray) ;
+    (execRpcWork->inbuf).size= (uint16_t) partialInArraySize/2;
+    (execRpcWork->inbuf).mapped= 0;
+
+    (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(dspOutArray) ;
+    (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(dspOutArray) ;
+    //(execRpcWork->outbuf).size=  (uint16_t) partialOutArraySize;
+    (execRpcWork->outbuf).size=  (uint16_t) outColsPerIter * outChannel;
+    (execRpcWork->outbuf).mapped= 0;
+
+    (execRpcWork->weight).ahbAddrHi = GET_HIGH_16(wt) ;
+    (execRpcWork->weight).ahbAddrLo = GET_LOW_16(wt) ;
+    (execRpcWork->weight).size=  (uint16_t)weightArraySize;
+    (execRpcWork->weight).mapped= 0;
+
+    (execRpcWork->bias).ahbAddrHi = GET_HIGH_16(bias) ;
+    (execRpcWork->bias).ahbAddrLo = GET_LOW_16(bias) ;
+    (execRpcWork->bias).size=  (uint16_t) biasArraySize;
+    (execRpcWork->bias).mapped= 0;
+
+    conv2d_opt temp_opt = opt;
+    temp_opt.in_rows = H;
+    temp_opt.in_cols = W;
+    temp_opt.out_rows = outRowsPerIter;
+    temp_opt.out_cols = outColsPerIter;
+    //if (variant == DEPTHWISE_CONV_2D)
+    //{
+    //  temp_opt.in_depth = 1;
+    //}
+    memcpy (&((execRpcWork->params).conv2dParams),&temp_opt,sizeof(conv2d_opt));
+
+    int i, j, k;
+    int l = 0;
+    int m = 0;
+    int n = 0;
+    int offset = 0;
+    int lowerBoundOutY = 0;
+
+    int leftBound = 0;
+    int rightBound = opt.col_stride * opt.out_cols;
+    if (rightPad)
+    {
+      rightBound = opt.col_stride * (opt.out_cols - outColsPerIter);
+      if (leftPad)
+      {
+        rightBound -= leftPad;
+      }
+    }
+    if (leftPad)
+    {
+      leftBound = opt.col_stride * outColsPerIter - leftPad;
+    }
+
+    // Following 3 variables are for keeping track of which
+    // row to read/write of the partial out array
+    int nFilledRowsPartialOutArray = 0;
+    int outBuffRdRow = 0;
+    int outBuffWrRow = 0;
+    int inBuffPatch = 0;
+
+    // Following variable is to track the rows written to
+    // outArray
+    int rowIndexOutArray = 0;
+
+    int dspBusy = 0;
+
+    tmpDspOutArray = dspOutArray;
+    // First handle top pads
+    if (topPad)
+    {
+      //ecm35xx_printf("Handling top pad...\r\n");
+      // top left
+      if (leftPad)
+      {
+        //ecm35xx_printf("Handling top left pad...\r\n");
+        l = 0;
+        m = 0;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=0; j<W; j++) // stepping through columns of first row
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill first row with 0s
+          }
+          for (j=W; j<W*H; j+=W) // stepping through rows starting from second
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill first column with 0s
+            for (k=1; k<W; k++) // stepping through columns starting from second
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = 0;
+          n = 0;
+        }
+
+        inBuffPatch = (inBuffPatch + 1) % 2;
+
+        // Send the patch to DSP to process
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy=1;
+        //ecm35xx_printf("tmpDspOutArray: %x\r\n", (tmpDspOutArray-dspOutArray));
+        tmpDspOutArray += outColsPerIter * outChannel;
+      }
+
+      // Row 3: 1 * 1 * 8 = 8
+      // Row 5: 0 * 2 * 8 = 0
+      //offset = leftPad * opt.col_stride * inChannel;
+      offset = leftBound * inChannel;
+      // stepping thr cols of output
+      //for (index=leftPad; index<opt.in_cols+rightPad-W; index=index+opt.col_stride*outColsPerIter)
+      for (index=leftBound; index<rightBound; index=index+opt.col_stride*outColsPerIter)
+      {
+        //ecm35xx_printf("Handling top pad center...\r\n");
+        l = 0;
+        m = 0;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=0; j<W; j++) // stepping through columns of first row
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill first row with 0s
+          }
+          for (j=W; j<W*H; j+=W) // stepping through rows starting from second
+          {
+            for (k=0; k<W; k++) // stepping through columns starting from first
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n+offset];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = 0;
+          n = 0;
+        }
+        // Row 3: 8 * 1 * 2 = 16
+        // Row 5: 8 * 2 * 2 = 32
+        offset += inChannel * opt.col_stride * outColsPerIter;
+
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        // Send the patch to DSP to process
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy=1;
+        //ecm35xx_printf("tmpDspOutArray: %x\r\n", (tmpDspOutArray-dspOutArray));
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      // top right
+      if (rightPad)
+      {
+        //ecm35xx_printf("Handling top right pad...\r\n");
+        l = 0;
+        m = 0;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=0; j<W; j++) // stepping through columns of first row
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill first row with 0s
+          }
+          for (j=W; j<W*H; j+=W) // stepping through rows starting from second
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j+W-1] = 0; // fill last column with 0s
+            for (k=0; k<W-1; k++) // stepping through columns starting from first
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n+offset];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = 0;
+          n = 0;
+        }
+
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        // Send the patch to DSP to process
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy=1;
+        //ecm35xx_printf("tmpDspOutArray: %x\r\n", (tmpDspOutArray-dspOutArray));
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      // Done with top pad.
+      // Update output row index.
+      // Row 3: 8 * 128 * (1-1)
+      lowerBoundOutY = inChannel * inWidth * (opt.row_stride - topPad);
+      outBuffWrRow = (outBuffWrRow + 1) % nRowsPartialOutArray;
+      nFilledRowsPartialOutArray = 1;
+    }
+
+    /*for (i=0; i<32; i++)
+    {
+      ecm35xx_printf("%d, ", dspOutArray[i]);
+    }
+    ecm35xx_printf("\r\n");*/
+    //for (index1=topPad; index1<outHeight-bottomPad; index1++) // stepping thr rows of output
+    for (index1=0; index1<inHeight+bottomPad-H; index1=index1+opt.row_stride) // stepping thr rows of output
+    //for (index1=topPad; index1<2; index1++) // stepping thr rows of output
+    {
+      // If partialOutArray is full, read it to outArray.
+      if (nFilledRowsPartialOutArray == nRowsPartialOutArray)
+      {
+        for (index=0; index<outWidth * outChannel; index++)
+        {
+          inArray[rowIndexOutArray * outWidth * outChannel + index]
+            = dspOutArray[(outWidth * outChannel) * outBuffRdRow + index];
+        }
+        rowIndexOutArray++;
+        nFilledRowsPartialOutArray--;
+        outBuffRdRow = (outBuffRdRow + 1) % nRowsPartialOutArray;
+      }
+
+      // Update pointer to begining of the correct row
+      tmpDspOutArray = dspOutArray + (outWidth * outChannel) * outBuffWrRow;
+
+      // center left
+      if (leftPad)
+      {
+        l = 0; // InCh
+        m = lowerBoundOutY; // H
+        n = 0; // C
+        //for (i=m; i<16; i++)
+        //    ecm35xx_printf("%d, ", inArray[i]);
+        //ecm35xx_printf("\r\n");
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=0; j<W*H; j+=W) // stepping through rows starting from first
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill first column with 0s
+            for (k=1; k<W; k++) // stepping through columns starting from second
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = lowerBoundOutY;
+          n = 0;
+        }
+
+        //ecm35xx_printf("center left patch:\r\n");
+        //for (i=0; i<W*H*C; i++)
+        //    ecm35xx_printf("%d, ", dspInArray[i]);
+        //ecm35xx_printf("\r\n");
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        // Send the patch to DSP to process
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        //ecm35xx_printf("submitting center left\r\n");
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy=1;
+        //xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+        //ecm35xx_printf("output patch:\r\n");
+        //for (i=0; i<32; i++)
+        //    ecm35xx_printf("%d, ", dspOutArray[64*16+i]);
+        //ecm35xx_printf("\r\n");
+        //ecm35xx_printf("%x\r\n", tmpDspOutArray);
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      //offset = leftPad * opt.col_stride * inChannel;
+      offset = leftBound * inChannel;
+      // stepping thr cols of output
+      //for (index=leftPad; index<opt.in_cols+rightPad-W; index=index+opt.col_stride*outColsPerIter)
+      for (index=leftBound; index<rightBound; index=index+opt.col_stride*outColsPerIter)
+      {
+        l = 0;
+        m = lowerBoundOutY;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=0; j<W*H; j+=W) // stepping through rows starting from first
+          {
+            for (k=0; k<W; k++) // stepping through columns starting from first
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n+offset];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = lowerBoundOutY;
+          n = 0;
+        }
+        offset += inChannel * opt.col_stride * outColsPerIter;
+
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        //ecm35xx_printf("output patch:\r\n");
+        //ecm35xx_printf("%d) ", index);
+        //for (i=0; i<32; i++)
+        //    ecm35xx_printf("%d, ", dspOutArray[64*16+i]);
+        //ecm35xx_printf("\r\n");
+        // Send the patch to DSP to process
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        //ecm35xx_printf("submitting center center\r\n");
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy=1;
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      // center right
+      if (rightPad)
+      {
+        l = 0;
+        m = lowerBoundOutY;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=0; j<W*H; j+=W) // stepping through rows starting from first
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j+W-1] = 0; // fill last column with 0s
+            for (k=0; k<W-1; k++) // stepping through columns starting from first
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n+offset];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = lowerBoundOutY;
+          n = 0;
+        }
+
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        // Send the patch to DSP to process
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy=1;
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      // Done with the row.
+      // Update output row index.
+      // Row 3: 8 * 128 * 1
+      // Row 5: 8 * 128 * 2
+      lowerBoundOutY += inChannel * inWidth * opt.row_stride;
+
+      outBuffWrRow = (outBuffWrRow + 1) % nRowsPartialOutArray;
+
+      nFilledRowsPartialOutArray++;
+    }
+    //ecm35xx_printf("dspOutArray\r\n");
+    /*k = 0;
+    for (j=k*64; j<k*64+64*2; j++)
+    {
+      ecm35xx_printf("[%d] ", j);
+      for (i=0; i<16; i++)
+      {
+        ecm35xx_printf("%d, ", dspOutArray[j*16+i]);
+      }
+      ecm35xx_printf("\r\n");
+    }
+    ecm35xx_printf("outArray\r\n");
+    k = 1;
+    //for (j=k*64; j<k*64+64; j++)
+    //{
+      for (i=0; i<16; i++)
+      {
+        ecm35xx_printf("%d, ", outArray[j*16+i]);
+      }
+      ecm35xx_printf("\r\n");
+    //}*/
+
+    if (bottomPad)
+    {
+      // If partialOutArray is full, read it to outArray.
+      if (nFilledRowsPartialOutArray == nRowsPartialOutArray)
+      {
+        for (index=0; index<outWidth * outChannel; index++)
+        {
+          inArray[rowIndexOutArray * outWidth * outChannel + index]
+            = dspOutArray[(outWidth * outChannel) * outBuffRdRow + index];
+        }
+        rowIndexOutArray++;
+        nFilledRowsPartialOutArray--;
+        outBuffRdRow = (outBuffRdRow + 1) % nRowsPartialOutArray;
+      }
+
+      // Update pointer to begining of the correct row
+      tmpDspOutArray = dspOutArray + (outWidth * outChannel) * outBuffWrRow;
+
+      //ecm35xx_printf("Handling bottom pad...\r\n");
+      // bottom left
+      if (leftPad)
+      {
+        //ecm35xx_printf("Handling bottom left pad...\r\n");
+        l = 0;
+        m = lowerBoundOutY;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=W*(H-1); j<W*H; j++) // stepping through columns of last row
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill last row with 0s
+          }
+          for (j=0; j<W*(H-1); j+=W) // stepping through rows starting from first
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill first column with 0s
+            for (k=1; k<W; k++) // stepping through columns starting from second
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = lowerBoundOutY;
+          n = 0;
+        }
+
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy = 1;
+        //ecm35xx_printf("tmpDspOutArray: %x\r\n", (tmpDspOutArray-dspOutArray));
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      //offset = leftPad * opt.col_stride * inChannel;
+      offset = leftBound * inChannel;
+      // stepping thr cols of output
+      //for (index=leftPad; index<opt.in_cols+rightPad-W; index=index+opt.col_stride*outColsPerIter)
+      for (index=leftBound; index<rightBound; index=index+opt.col_stride*outColsPerIter)
+      {
+        //ecm35xx_printf("Handling bottom pad center...\r\n");
+        l = 0;
+        m = lowerBoundOutY;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=W*(H-1); j<W*H; j++) // stepping through columns of last row
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill last row with 0s
+          }
+          for (j=0; j<W*(H-1); j+=W) // stepping through rows starting from first
+          {
+            for (k=0; k<W; k++) // stepping through columns starting from first
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n+offset];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = lowerBoundOutY;
+          n = 0;
+        }
+        offset += inChannel * opt.col_stride * outColsPerIter;
+
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        // Send the patch to DSP to process
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy = 1;
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      // bottom right
+      if (rightPad)
+      {
+        //ecm35xx_printf("Handling bottom right pad...\r\n");
+        l = 0;
+        m = lowerBoundOutY;
+        n = 0;
+        for (i=0; i<W*H*C; i+=W*H) // stepping through the channels of the patch
+        {
+          for (j=W*(H-1); j<W*H; j++) // stepping through columns of last row
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j] = 0; // fill last row with 0s
+          }
+          for (j=0; j<W*(H-1); j+=W) // stepping through rows starting from first
+          {
+            dspInArray[inBuffPatch*W*H*C+i+j+W-1] = 0; // fill last column with 0s
+            for (k=0; k<W-1; k++) // stepping through columns starting from first
+            {
+              dspInArray[inBuffPatch*W*H*C+i+j+k]
+                = inArray[l+m+n+offset];
+              n += inChannel;
+            }
+            m += inChannel * inWidth;
+            n = 0;
+          }
+          l++;
+          m = lowerBoundOutY;
+          n = 0;
+        }
+
+        if(dspBusy)
+        {
+          xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+          dspBusy = 0;
+        }
+        // Send the patch to DSP to process
+        (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(&dspInArray[inBuffPatch*W*H*C]) ;
+        (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(tmpDspOutArray) ;
+        (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(tmpDspOutArray) ;
+        rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opID, (void*)execRpcWork);
+        dspBusy = 1;
+        //ecm35xx_printf("tmpDspOutArray: %x\r\n", (tmpDspOutArray-dspOutArray));
+        tmpDspOutArray += outColsPerIter * outChannel;
+        inBuffPatch = (inBuffPatch + 1) % 2;
+      }
+
+      // Done with the row.
+      // Update output row index.
+      lowerBoundOutY += inChannel * inWidth * opt.row_stride;
+
+      outBuffWrRow = (outBuffWrRow + 1) % nRowsPartialOutArray;
+
+      nFilledRowsPartialOutArray++;
+    }
+
+    if(dspBusy)
+    {
+      xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+      dspBusy = 0;
+    }
+
+    for (index1=0; index1<nFilledRowsPartialOutArray; index1++)
+    {
+      for (index=0; index<outWidth * outChannel; index++)
+      {
+        inArray[rowIndexOutArray * outWidth * outChannel + index]
+          = dspOutArray[(outWidth * outChannel) * outBuffRdRow + index];
+      }
+      rowIndexOutArray++;
+      outBuffRdRow = (outBuffRdRow + 1) % nRowsPartialOutArray;
+    }
+  }
+  // check status // convert back out buffer
+  //PTR_DUMP8(outArray,outArraySize);
+  //TBD remove it
+  g_outHeight = outHeight;
+  g_outWidth  = outWidth;
+  g_outChannel = outChannel;
+  // Free all shared memory pointers
+  //ecm35xx_printf("free up memory\r\n");
+  if ( bitset) vPortFree(bitset);
+  if ( dspInArray) vPortFree(dspInArray);
+  if ( dspInArray1) vPortFree(dspInArray1);
+  if ( dspWeight) vPortFree(dspWeight);
+  if ( dspBias) vPortFree(dspBias);
+  if ( dspOutArray) vPortFree(dspOutArray);
+  if (execRpcWork) SharedMemFree(execRpcWork);
+  //ecm35xx_printf("get back to caller\r\n");
+  // Get back  to caller
+  return EXEC_STATUS_OK;
+}
+
 static ExecStatus  eta_conv2d_q7_chw_relu_dsp (const q7_t * inArray,  const q7_t *  wt, const q7_t * bias,  q7_t *  outArray,  q7_t *  buffIn,  conv2d_opt opt, uint8_t opID, uint8_t variant)
 {
   uint16_t inHeight , inWidth, inChannel,
@@ -965,10 +1840,14 @@ static ExecStatus  eta_conv2d_q7_chw_relu_dsp (const q7_t * inArray,  const q7_t
            pad, leftPad, topPad, rightPad, bottomPad;
   tExecutorRpcWork  * execRpcWork = 0;
   uint32_t inArraySize, weightArraySize, biasArraySize, outArraySize,partialInArraySize,partialOutArraySize;
-  int index = 0;
+  uint32_t row_index = 0;
+  uint32_t index = 0;
+  uint32_t index1 = 0;
+  q7_t temp_holder;
   int num_per_iter = 1;
   int run_input_and_dsp_in_parallel = 1;
   uint64_t start_ms, stop_ms;
+  uint8_t opId =0;
   //Make sure to change their types
   shMemBufPtr dspInArray = 0;
   shMemBufPtr dspInArray1 = 0;
@@ -1016,7 +1895,176 @@ static ExecStatus  eta_conv2d_q7_chw_relu_dsp (const q7_t * inArray,  const q7_t
   //ecm35xx_printf("inArraySize: %d\r\n", inArraySize);
   //ecm35xx_printf("outArraySize: %d\r\n", outArraySize);
   //ecm35xx_printf("DSP_INOUT_MEM_LIMIT: %d\r\n", DSP_INOUT_MEM_LIMIT);
-  if (((weightArraySize + biasArraySize) < DSP_WEIGHT_BIAS_MEM_LIMIT) &&
+
+  /*
+   * It is possible to process larger input size in the special case
+   * of when input channels is 1.
+   */
+  if (inArraySize + outArraySize/outChannel > DSP_INOUT_MEM_LIMIT &&
+      inChannel == 1)
+  {
+    opId =  EXEC_OP_DSP_CHW_3X3_CONV2D_STRIDE2_PAD0_RELU_HWC;
+    //start_ms = HalTmrRead(0);
+    int outRowsPerIter = 1; // Must be 1
+    int inRowsPerIter = kernelHeight + (opt.row_stride * (outRowsPerIter-1));
+    partialInArraySize = inWidth * inChannel * inRowsPerIter;
+    partialOutArraySize = outWidth * outChannel * outRowsPerIter;
+
+    dspWeight = (  shMemBufPtr ) pvPortMalloc(weightArraySize* (sizeof (dspWeight[0])));
+    //ecm35xx_printf(" dspWeight [%d]\r\n", weightArraySize);
+    if ( ! dspWeight)
+    {
+      ecm35xx_printf("No memory for  dspWeight...\r\n");
+    }
+
+    reorder_conv2d_kernel(( int8_t* ) wt, dspWeight,
+                          kernelHeight, kernelWidth,
+                          inChannel, outChannel);
+
+    execRpcWork = SharedMemAlloc(sizeof(tExecutorRpcWork));
+    //memset((void *) execRpcWork,0, sizeof(tExecutorRpcWork));
+    if (!execRpcWork) {
+      //TBD: Add trace message of error
+      return -1;
+    }
+
+    // Fill in the shared data structure with DSP
+    execRpcWork-> status = -1;
+    (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(inArray) ;
+    (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(inArray) ;
+    (execRpcWork->inbuf).size= (uint16_t) partialInArraySize;
+    (execRpcWork->inbuf).mapped= 0;
+
+    (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(outArray) ;
+    (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(outArray) ;
+    (execRpcWork->outbuf).size=  (uint16_t) partialOutArraySize;
+    (execRpcWork->outbuf).mapped= 0;
+
+    (execRpcWork->weight).ahbAddrHi = GET_HIGH_16(dspWeight) ;
+    (execRpcWork->weight).ahbAddrLo = GET_LOW_16(dspWeight) ;
+    (execRpcWork->weight).size=  (uint16_t)weightArraySize;
+    (execRpcWork->weight).mapped= 0;
+
+    (execRpcWork->bias).ahbAddrHi = GET_HIGH_16(bias) ;
+    (execRpcWork->bias).ahbAddrLo = GET_LOW_16(bias) ;
+    (execRpcWork->bias).size=  (uint16_t) biasArraySize;
+    (execRpcWork->bias).mapped= 0;
+
+    conv2d_opt temp_opt = opt;
+    temp_opt.in_rows = inRowsPerIter;
+    temp_opt.out_rows = outRowsPerIter;
+    /*if (variant == DEPTHWISE_CONV_2D)
+    {
+      temp_opt.in_depth = 1;
+    }*/
+    memcpy (&((execRpcWork->params).conv2dParams),&temp_opt,sizeof(conv2d_opt));
+
+    //ecm35xx_printf("Marker 0 \r\n");
+    // Iterate over the rows of the output
+    // Layer 2: 127*0.5kB = 63.5kB
+    //          127*1kB = 127kB
+    uint32_t inArrayPtr = (uint32_t) inArray;
+    uint32_t outArrayPtr = (uint32_t) outArray;
+    int numProcessedRows = 0;
+    for ( index = 0; index < opt.out_rows-1; index+=outRowsPerIter)
+    {
+      execRpcWork->index = 0;
+
+      (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(inArrayPtr);
+      (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(inArrayPtr);
+
+      (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(outArrayPtr);
+      (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(outArrayPtr);
+
+      // submit work
+      //start_ms = HalTmrRead(0);
+      rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opId, (void*)execRpcWork);
+      // work for wait to get over from DSP
+      xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+      //stop_ms =  HalTmrRead(0);
+      //ecm35xx_printf("kernel  time= %d ms\r\n", (uint32_t) (stop_ms - start_ms));
+
+      // PTR_DUMP16(dspOutArray,outArraySize);
+
+      //if (  execRpcWork->status == 0)
+
+      inArrayPtr += inWidth * outRowsPerIter * opt.row_stride;
+      outArrayPtr += partialOutArraySize;
+      numProcessedRows += outRowsPerIter;
+    }
+
+    //ecm35xx_printf("Marker 1 \r\n");
+    // Specially handle last 2 rows
+    // numProcessedRows must be 1 or greater
+    int remainingOutRows = opt.out_rows - numProcessedRows;
+    if (remainingOutRows)
+    {
+    //ecm35xx_printf("Remaining out rows: %d \r\n", remainingOutRows);
+    (execRpcWork->inbuf).ahbAddrHi = GET_HIGH_16(inArrayPtr);
+    (execRpcWork->inbuf).ahbAddrLo = GET_LOW_16(inArrayPtr);
+
+    (execRpcWork->outbuf).ahbAddrHi = GET_HIGH_16(outArrayPtr);
+    (execRpcWork->outbuf).ahbAddrLo = GET_LOW_16(outArrayPtr);
+
+    inRowsPerIter = inHeight -
+                    (kernelHeight + opt.row_stride * (numProcessedRows-1));
+    inRowsPerIter = 2;
+    //ecm35xx_printf("Number of in rows: %d \r\n", inRowsPerIter);
+    partialInArraySize = inWidth * inChannel * inRowsPerIter;
+    partialOutArraySize = outWidth * outChannel * remainingOutRows;
+    (execRpcWork->inbuf).size= (uint16_t) partialInArraySize;
+    (execRpcWork->outbuf).size=  (uint16_t) partialOutArraySize;
+
+    temp_opt.in_rows = inRowsPerIter;
+    temp_opt.out_rows = remainingOutRows;
+    memcpy (&((execRpcWork->params).conv2dParams),&temp_opt,sizeof(conv2d_opt));
+
+    //FIXME uncomment following 2 line to process the last 2 rows
+    rpcSubmitWork(RPC_MODULE_ID_EXECUTOR, opId, (void*)execRpcWork);
+    xSemaphoreTake(execDspRespSem, portMAX_DELAY);
+    }
+
+    //int bitset_size = opt.out_cols * opt.num_filt / 8;
+    //if((opt.out_cols * opt.num_filt) % 8) bitset_size++;
+    //bitset = (int8_t *) pvPortMalloc(bitset_size);
+
+    //ecm35xx_printf("Marker 2 \r\n");
+    // Convert output array from HCW to HWC inplace.
+    /*for(row_index=0; row_index<opt.out_rows; row_index++)
+    {
+      for(index=0; index<bitset_size; index++)
+      {
+        bitset[index] = 0;
+      }
+
+      uint32_t row_offset = row_index * (opt.out_cols * opt.num_filt);
+
+      for(index=1; index<(opt.out_cols * opt.num_filt)-1; index++)
+      {
+        // Check if the element is already swapped
+        if((bitset[index/8] & (0x1 << (index%8))) != 0x0) continue;
+
+        // If not ...
+        // Compute destination index
+        index1 = (index%opt.out_cols)*opt.num_filt + (index/opt.out_cols);
+        // Do until destination index is same as the starting index.
+        while(index1 != index)
+        {
+          temp_holder = outArray[row_offset+index1];
+          outArray[row_offset+index1] = outArray[row_offset+index];
+          outArray[row_offset+index] = temp_holder;
+
+          // Mark index1 to avoid swapping again
+          bitset[index1/8] = bitset[index1/8] | (0x1 << (index1%8));
+          index1 = (index1%opt.out_cols)*opt.num_filt + (index1/opt.out_cols);
+        }
+        bitset[index/8] = bitset[index/8] | (0x1 << (index%8));
+      }
+    }*/
+    //stop_ms =  HalTmrRead(0);
+    //ecm35xx_printf("kernel  time= %d ms\r\n", (uint32_t) (stop_ms - start_ms));
+  }
+  else if (((weightArraySize + biasArraySize) < DSP_WEIGHT_BIAS_MEM_LIMIT) &&
       ((inArraySize + outArraySize) >DSP_INOUT_MEM_LIMIT)) {
     //ecm35xx_printf(" inouts  do not fit in memory\r\n");
 

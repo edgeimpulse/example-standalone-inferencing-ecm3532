@@ -35,8 +35,8 @@ endif ()
 set(Kconfiglib_CONFIG_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(Kconfiglib_HEADER_OUTPUT "${PROJECT_BINARY_DIR}")
 
-find_package(PythonInterp)
-set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+set(Python_3_OK TRUE)
+find_package(Python)
 
 find_file(KconfiglibPath Kconfiglib HINT "${CMAKE_CURRENT_LIST_DIR}/../../../Thirdparty") 
 set(Kconfiglib ${KconfiglibPath})
@@ -103,6 +103,24 @@ else ()
     set_property(TARGET csp PROPERTY IMPORTED_LOCATION ${cspib})
 endif()
 
+set(mathvar "CONFIG_ETA_MATH")
+CONFIGVAL(mathvaren ${mathvar})
+string(COMPARE EQUAL "${mathvaren}" y eta_math_en)
+if (eta_math_en)
+    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/eta_math/src")
+        message("building eta math from src")
+        add_library(etaMath "")
+        SET_TARGET_PROPERTIES(etaMath PROPERTIES LINKER_LANGUAGE C)
+        set(etaMathlib etaMath)
+    else ()
+        message("building etaMath from etaMathlib")
+        find_library(etaMathlib etaMath HINTS ${PROJ_DIR}/pre_built)
+        add_library(etaMath STATIC IMPORTED)
+        set_property(TARGET etaMath PROPERTY IMPORTED_LOCATION ${etaMathlib})
+        #include_directories("${CMAKE_CURRENT_LIST_DIR}/framework/rpc/include")
+    endif()
+endif()
+
 set(cfgvar "CONFIG_NN_KERNELS")
 CONFIGVAL(cfgvaren ${cfgvar})
 string(COMPARE EQUAL "${cfgvaren}" y nn_kernel_en)
@@ -132,8 +150,9 @@ if (executorEnabled)
         SET_TARGET_PROPERTIES(executor PROPERTIES LINKER_LANGUAGE C)
         set(dspexecutorlib executor)
         find_library(dspkernellib dspkernel HINTS ${PROJ_DIR}/pre_built)
+        find_library(etaMathlib etaMath HINTS ${PROJ_DIR}/pre_built)
         find_library(csplib csp HINTS ${PROJ_DIR}/pre_built)
-        target_link_libraries(executor LINK_PUBLIC ${csplib} ${dspkernellib})
+        target_link_libraries(executor LINK_PUBLIC ${csplib} ${dspkernellib} ${etaMathlib})
         #target_link_libraries(executor LINK_PUBLIC ${dspkernellib})
     else ()
         message("building dsp executors from dspexecutorlib")
@@ -157,25 +176,24 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sensor_mgr sensor_mgr)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/kernel kernel)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/executor executor)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/audio audio)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/eta_math eta_math)
 
 
 find_package(Doxygen)
 if ( DOXYGEN_FOUND )
-    include("${CMAKE_CURRENT_LIST_DIR}/cmake/doxy.cmake")	
+    include("${CMAKE_CURRENT_LIST_DIR}/cmake/doxy.cmake")
     #include(doxy)
    else (DOXYGEN_FOUND)
     message("Doxygen not found ")
 endif (DOXYGEN_FOUND)
 
 
-
 get_property(plib GLOBAL PROPERTY plib_list_property)
 set_property(GLOBAL PROPERTY plib_list_property
-        "${plib};${csplib};${dspkernellib};${dspexecutorlib};")
+        "${plib};${csplib};${dspkernellib};${etaMathlib};${dspexecutorlib};")
 get_property(plib GLOBAL PROPERTY plib_list_property)
 #message("library list="${plib})
 target_link_libraries(${PROJECT_NAME}.elf ${plib})
-
 
 
 #####Linking libraries
@@ -212,6 +230,7 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
     COMMAND mv ${PROJECT_NAME}.elf bin
     COMMAND read_elf bin/${PROJECT_NAME}.elf -e -G -fhath -mIOMEM=8 -mYMEM=8 -mXMEM=8 -pPMEM=32 +g
     COMMAND ${DSP_TOOLS}/create_dsp_include_3532.pl ${PROJECT_NAME} ${getsection}
+    COMMAND ${Python_EXECUTABLE} ${DSP_TOOLS}/genDSPBin.py ${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.elf
     VERBATIM
 )
 
@@ -263,7 +282,7 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/cmake/CPackConfig.cmake")
 endif ()
 
 
-message(Python_EXECUTABLE = ${PYTHON_EXECUTABLE})
+message(Python_EXECUTABLE = ${Python_EXECUTABLE})
 message(tool chain file = ${CMAKE_TOOLCHAIN_FILE})
 message(cross compiler =  ${CMAKE_C_COMPILER})
 #message("cross compilation is on =" ${CMAKE_CROSSCOMPILING})

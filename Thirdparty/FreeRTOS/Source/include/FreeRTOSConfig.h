@@ -103,6 +103,7 @@ command interpreter running. */
 #define configCOMMAND_INT_MAX_OUTPUT_SIZE 1000
 #define configAPPLICATION_PROVIDES_cOutputBuffer 1
 #define configGENERATE_RUN_TIME_STATS 0
+#define configCLI_SampleCommads 1
 #define configUSE_STATS_FORMATTING_FUNCTIONS 0
 
 #endif /* FREERTOS_CONFIG_H */

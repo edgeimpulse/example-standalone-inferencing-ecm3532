@@ -1,0 +1,2 @@
+/usr/bin/arm-none-eabi-ar qc /home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/pre_built/libiodev.a  CMakeFiles/iodev.dir/home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/hw/drivers/spi_flash/common/spi_flash.c.o
+/usr/bin/arm-none-eabi-ranlib /home/arjan/Documents/EdgeImpulse/Firmware/example-standalone-inferencing-ecm3532/Platform/ECM3532/M3/pre_built/libiodev.a

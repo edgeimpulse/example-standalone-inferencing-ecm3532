@@ -42,11 +42,22 @@ typedef  struct
     uint16_t ahbAddrLo;
 }dspShmemBuf;
 
+typedef struct dsp_math_fft_opt_st
+{
+    uint16_t fft_length;  // input fft length
+} tDsp_math_fft_opt;
+
+typedef struct dsp_math_func_opt_st
+{
+    uint16_t len;  // input length
+} tDsp_math_func_opt;
+
 typedef union
 {
     conv2d_relu_avgpool_opt convReluPoolParams;
-    conv_pw_opt                   convPwParams;
-    conv2d_opt             conv2dParams;
+    conv_pw_opt             convPwParams;
+    conv2d_opt              conv2dParams;
+    tDsp_math_fft_opt       fft_opt;
 }tExecutorRpcParams;
 
 

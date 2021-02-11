@@ -21,6 +21,8 @@ orsource "sensor_mgr/Kconfig"
 orsource "kernel/Kconfig" 
 orsource "executor/Kconfig"
 orsource "audio/Kconfig"
+orsource "eta_math/Kconfig"
+
 menu "Application Menu"
 orsource "appKconfig"
 

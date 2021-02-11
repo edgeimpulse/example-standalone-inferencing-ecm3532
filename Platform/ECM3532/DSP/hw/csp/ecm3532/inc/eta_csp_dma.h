@@ -300,6 +300,10 @@ extern tEtaStatus EtaCspDmaPackLaunchAndWait (uint_fast8_t ui8Channel, uint32_t 
 extern tEtaStatus EtaCspDmaPackLaunch (uint_fast8_t ui8Channel, uint32_t ui32AhbByteAddr,
                                 tDmaTarget iSrcTarget, uint32_t ui32SrcAddr,
                                 uint16_t ui16XferLength);
+//
+// EtaCspGetFreeDmaCh - Get A free DMA Channel, Error on All Busy
+//
+tEtaStatus EtaCspGetFreeDmaCh(void);
 
 #ifdef __cplusplus
 }

@@ -211,9 +211,6 @@ int32_t HalUartReadBuf(uint8_t ui8Port, uint8_t *ui8RxBuf,
 int32_t HalUartWriteBuf(uint8_t ui8Port, uint8_t *ui8TxBuf,
                         uint32_t ui32TxCnt, tHalUartTxDoneCb fTxDoneCb,
                         void *vCbArg);
-
-void HalPuts(char *string);
-
 #ifdef __cplusplus
 }
 #endif
