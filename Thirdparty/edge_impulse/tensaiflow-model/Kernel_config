@@ -1,0 +1,3 @@
+config OP_M3_FULLY_CONNECTED_Q7
+	bool
+	default y
