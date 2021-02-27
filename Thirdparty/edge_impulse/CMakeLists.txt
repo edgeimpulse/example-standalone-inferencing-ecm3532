@@ -20,6 +20,7 @@ file(GLOB CMSIS "${CMAKE_CURRENT_LIST_DIR}/edge-impulse-sdk/CMSIS/DSP/Source/Sup
                 "${CMAKE_CURRENT_LIST_DIR}/edge-impulse-sdk/CMSIS/DSP/Source/StatisticsFunctions/*.c"
                 "${CMAKE_CURRENT_LIST_DIR}/edge-impulse-sdk/CMSIS/DSP/Source/TransformFunctions/*.c"
                 "${CMAKE_CURRENT_LIST_DIR}/edge-impulse-sdk/CMSIS/DSP/Source/CommonTables/*.c")
+file(GLOB TENSAIMODEL "${CMAKE_CURRENT_LIST_DIR}/tensaiflow-model/*.c")
 
 
 foreach (ei_sdk ${EI_SDK})
@@ -43,6 +44,9 @@ target_include_directories(edgeimpulse PUBLIC
 
 target_include_directories(edgeimpulse PUBLIC
     "${CMAKE_CURRENT_LIST_DIR}/dsp")
+
+target_include_directories(edgeimpulse PUBLIC
+    "${CMAKE_CURRENT_LIST_DIR}/tensaiflow-model")
 
 foreach (ei_tf ${TF})
     target_sources(edgeimpulse PRIVATE ${ei_tf})
@@ -92,4 +96,8 @@ target_include_directories(edgeimpulse PUBLIC
 
 foreach (ei_cmsis ${CMSIS})
     target_sources(edgeimpulse PRIVATE ${ei_cmsis})
+endforeach()
+
+foreach (ei_tensaimodel ${TENSAIMODEL})
+    target_sources(edgeimpulse PUBLIC ${ei_tensaimodel})
 endforeach()

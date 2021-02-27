@@ -80,10 +80,12 @@ CONFIG_PIN7_MUX=3
 # CONFIG_PIN8_FUNC_GPIO8 is not set
 CONFIG_PIN8_FUNC_I2C1SDA=y
 # CONFIG_PIN8_FUNC_PDM0CLK is not set
+# CONFIG_PIN8_FUNC_I2C2SDA is not set
 CONFIG_PIN8_MUX=1
 # CONFIG_PIN9_FUNC_GPIO9 is not set
 CONFIG_PIN9_FUNC_I2C1SCK=y
 # CONFIG_PIN9_FUNC_PDM0DATA is not set
+# CONFIG_PIN9_FUNC_I2C2SCK is not set
 CONFIG_PIN9_MUX=1
 CONFIG_PIN20_FUNC_GPIO20=y
 # CONFIG_PIN20_FUNC_UART1TX is not set
@@ -278,18 +280,32 @@ CONFIG_DSP_INIT_FREQ=100
 #
 # RPC library
 #
-# CONFIG_RPC is not set
+CONFIG_RPC=y
 # end of RPC library
 
 #
 # DSP FW Configuations
 #
+CONFIG_DSP_UART=y
+CONFIG_DSP_EXECUTOR_FW=y
+# CONFIG_DSP_DEFAULT_FW is not set
+CONFIG_PRE_BUILD_DSP_FW_RELOCATED="dsp_fw_executor_relocated.bin"
+CONFIG_PRE_BUILD_DSP_FW="dsp_fw_executor.bin"
+CONFIG_DSP_EXECUTOR=y
+# CONFIG_DSP_HELLO_WORLD is not set
+# CONFIG_DSP_SENSOR is not set
+# CONFIG_DSP_PDM is not set
+# CONFIG_DSP_I2C is not set
+# CONFIG_DSP_KERNEL is not set
+# CONFIG_DSP_TIMER is not set
+# CONFIG_DSP_MALLOC is not set
+CONFIG_BUILD_DSP_FW="executor_test"
 # end of DSP FW Configuations
 
 #
 # Executor library
 #
-# CONFIG_EXECUTOR is not set
+CONFIG_EXECUTOR=y
 # end of Executor library
 
 #
@@ -325,6 +341,20 @@ CONFIG_FLASH_MX25R6435F=y
 #
 # Application Menu
 #
+
+#
+# Edge Impulse standalone project
+#
+
+#
+# Run impulse locally on Eta Compute target
+#
+CONFIG_OP_M3_CONV2D_Q7=y
+CONFIG_OP_M3_AVPOOL2D_Q7=y
+CONFIG_OP_M3_MAXPOOL_Q7=y
+CONFIG_OP_M3_FULLY_CONNECTED_Q7=y
+# end of Edge Impulse standalone project
+
 CONFIG_APP_NAME="edge-impulse-standalone"
 CONFIG_SW_VERSION="TensaiFlow_rc_alpha2-0.2"
 CONFIG_SW_VERSION_EXTRA=""
@@ -399,7 +429,7 @@ CONFIG_CLI=y
 CONFIG_SYSTICK_ON_REF_CLK=y
 CONFIG_TICK_RATE_HZ=500
 CONFIG_SYSTICK_REF_CLOCK=1024
-CONFIG_HEAP_SIZE=20000
+CONFIG_HEAP_SIZE=40000
 
 #
 # Check free heap using FreeHeap command before changing it

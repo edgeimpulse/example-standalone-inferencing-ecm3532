@@ -1,5 +1,5 @@
 /* Edge Impulse inferencing library
- * Copyright (c) 2021 EdgeImpulse Inc.
+ * Copyright (c) 2020 EdgeImpulse Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,39 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#pragma once
 
-#ifndef _EDGE_IMPULSE_RUN_CLASSIFIER_TYPES_H_
-#define _EDGE_IMPULSE_RUN_CLASSIFIER_TYPES_H_
-
-#include <stdint.h>
-#include "model-parameters/model_metadata.h"
-
-typedef struct {
-    const char *label;
-    float value;
-} ei_impulse_result_classification_t;
-
-typedef struct {
-    int sampling;
-    int dsp;
-    int classification;
-    int anomaly;
-} ei_impulse_result_timing_t;
-
-typedef struct {
-    ei_impulse_result_classification_t classification[EI_CLASSIFIER_LABEL_COUNT];
-    float anomaly;
-    ei_impulse_result_timing_t timing;
-} ei_impulse_result_t;
-
-typedef struct {
-    uint32_t buf_idx;
-    float running_sum;
-#if (EI_CLASSIFIER_SLICES_PER_MODEL_WINDOW > 1)
-    float maf_buffer[(EI_CLASSIFIER_SLICES_PER_MODEL_WINDOW >> 1)];
-#else
-    float maf_buffer[1];
-#endif
-}ei_impulse_maf;
-
-#endif // _EDGE_IMPULSE_RUN_CLASSIFIER_TYPES_H_
+#define ARRAY_LENGTH(array) (sizeof((array))/sizeof((array)[0]))

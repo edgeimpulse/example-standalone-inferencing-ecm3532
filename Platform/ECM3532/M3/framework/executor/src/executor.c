@@ -432,7 +432,7 @@ ExecStatus  __attribute__((optimize("O3"))) ExecReMapMem (ExecOperand_t  *p, voi
 static  void *  ExecAlloc (uint32_t size, uint8_t memType)
 {
     void * addr = 0;
-     //ecm35xx_printf("ExecAlloc size = %d ...\r\n",size);
+     // ecm35xx_printf("ExecAlloc size = %d ... %d free mem: %d\r\n",size, memType, xPortGetFreeHeapSize());
     if ( memType == OPD_MEM_TYPE_M3_LOCAL)
         addr = (void *) pvPortMalloc(size);
 

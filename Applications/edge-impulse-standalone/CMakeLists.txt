@@ -14,6 +14,8 @@ include_directories (../../Platform/ECM3532/M3/hw/hal/common/include)
 include_directories (../../Platform/ECM3532/Common/framework/inc)
 include_directories (../../eta_ai_bsp/inc)
 include_directories (${APP_DIR}/src/)
+include_directories (../../Platform/ECM3532/M3/framework/executor/include/pub)
+include_directories (../../Platform/ECM3532/M3/NN_kernels/include)
 
 #Below line should point to CMakeList of project base directory(freeertos directory)
 set(MCU_DIR "../../Platform/ECM3532/M3")
