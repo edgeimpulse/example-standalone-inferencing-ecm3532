@@ -1,6 +1,6 @@
 menu "Edge Impulse standalone project"
 comment "Run impulse locally on Eta Compute target"
 
-orsource "Kernel_config"
+orsource "../../Thirdparty/edge_impulse/tensaiflow-model/Kernel_config"
 
 endmenu
