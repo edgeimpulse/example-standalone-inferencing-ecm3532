@@ -98,13 +98,6 @@ static ai_handle network = AI_HANDLE_NULL;
 #include "tensorflow/lite/optional_debug_tools.h"
 #include "tflite-model/tflite-trained.h"
 
-#elif EI_CLASSIFIER_INFERENCING_ENGINE == EI_CLASSIFIER_TENSAIFLOW
-
-extern "C" {
-    #include "executor_public.h"
-    void infer(const q7_t *pIn0, q7_t *pOut0);
-}
-
 #elif EI_CLASSIFIER_INFERENCING_ENGINE == EI_CLASSIFIER_NONE
 // noop
 #else
@@ -524,47 +517,7 @@ extern "C" EI_IMPULSE_ERROR run_inference(
     ei_impulse_result_t *result,
     bool debug = false)
 {
-
-#if (EI_CLASSIFIER_INFERENCING_ENGINE == EI_CLASSIFIER_TENSAIFLOW)
-    {
-        uint64_t ctx_start_ms = ei_read_timer_ms();
-        int8_t *input;
-        int8_t output[EI_CLASSIFIER_LABEL_COUNT];
-
-        input = (int8_t *)ei_malloc(fmatrix->rows * fmatrix->cols);
-
-        if (!input) {
-            return EI_IMPULSE_ALLOC_FAILED;
-        }
-
-        for (size_t ix = 0; ix < fmatrix->rows * fmatrix->cols; ix++) {
-                input[ix] = static_cast<int8_t>(round(fmatrix->buffer[ix] / EI_CLASSIFIER_TFLITE_INPUT_SCALE) + EI_CLASSIFIER_TFLITE_INPUT_ZEROPOINT);
-        }
-
-        infer(input, output);
-
-        for (uint32_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
-            float value;
-            // Dequantize the output if it is int8
-            value = static_cast<float>(output[ix] - EI_CLASSIFIER_TFLITE_OUTPUT_ZEROPOINT) * EI_CLASSIFIER_TFLITE_OUTPUT_SCALE;
-
-            if (debug) {
-                ei_printf("%s:\t", ei_classifier_inferencing_categories[ix]);
-                ei_printf_float(value);
-                ei_printf("\n");
-            }
-            result->classification[ix].label = ei_classifier_inferencing_categories[ix];
-            result->classification[ix].value = value;            
-        }        
-
-        ei_printf("output: [%d %d %d]\r\n", output[0], output[1], output[2]);
-
-        result->timing.classification = ei_read_timer_ms() - ctx_start_ms;
-
-        ei_free(input);
-    }
-
-#elif (EI_CLASSIFIER_INFERENCING_ENGINE == EI_CLASSIFIER_TFLITE)
+#if (EI_CLASSIFIER_INFERENCING_ENGINE == EI_CLASSIFIER_TFLITE)
     {
         uint64_t ctx_start_ms;
         TfLiteTensor* input;

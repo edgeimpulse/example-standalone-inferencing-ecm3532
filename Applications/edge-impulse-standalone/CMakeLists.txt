@@ -3,7 +3,7 @@ set(APP_DIR ${CMAKE_CURRENT_LIST_DIR})
 get_filename_component(base_name ${CMAKE_CURRENT_LIST_DIR} NAME)
 set(APP ${base_name})
 
-add_definitions(-DECM3532 -DUSE_PDM_MIC -DUSE_BLE -DUSE_SPIFLASH -DFLASH -DPROJ_NAME=\"edge_impulse_ingestion\" -DEI_SENSOR_AQ_STREAM=FILE -DEIDSP_USE_CMSIS_DSP=1 -DEIDSP_QUANTIZE_FILTERBANK=0 -DARM_MATH_LOOPUNROL)
+add_definitions(-DECM3532 -DEI_CLASSIFIER_ALLOCATION_STATIC -DUSE_PDM_MIC -DUSE_BLE -DUSE_SPIFLASH -DFLASH -DPROJ_NAME=\"edge_impulse_ingestion\" -DEI_SENSOR_AQ_STREAM=FILE -DEIDSP_USE_CMSIS_DSP=1 -DEIDSP_QUANTIZE_FILTERBANK=0 -DARM_MATH_LOOPUNROL)
 
 include_directories (../../Thirdparty/edge_impulse/)
 include_directories (../../Thirdparty/edge_impulse/ingestion-sdk-platform/eta-compute)
