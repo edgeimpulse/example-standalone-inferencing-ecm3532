@@ -2,8 +2,9 @@ OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 ENTRY(Reset_Handler)
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x01000000, LENGTH = (0x80000 - 0x16000)
-    DSP (rx) : ORIGIN = (0x01000000 + (0x80000 - 0x16000)), LENGTH = 0x16000
+    FLASH (rx) : ORIGIN = 0x01006000, LENGTH = (0x7A000 - 0x16000 - 0x20000)
+    DSP (rx) : ORIGIN = (0x01006000 + (0x7A000 - 0x16000 - 0x20000)), LENGTH = 0x16000
+    PBUF (rx) : ORIGIN = ((0x01006000 + (0x7A000 - 0x16000 - 0x20000)) + 0x16000), LENGTH = 0x20000
     RAM (rwx) : ORIGIN = 0x10000000, LENGTH = (0x40000 - (60000 + 0x200))
     SHM (rwx) : ORIGIN = (0x10040000 - 0x200), LENGTH = 0x200
     HEAP (rwx) : ORIGIN = (0x10040000 - (60000 + 0x200)), LENGTH = 60000
@@ -137,7 +138,7 @@ SECTIONS
     .pbufBlock :
     {
         KEEP(*(.pbuf))
-    } > FLASH
+    } > PBUF
     __StackTop = ORIGIN(RAM) + LENGTH(RAM) - 4;
     __StackLimit = __StackTop - SIZEOF(.stack_dummy) ;
     PROVIDE(__stack = __StackTop);
