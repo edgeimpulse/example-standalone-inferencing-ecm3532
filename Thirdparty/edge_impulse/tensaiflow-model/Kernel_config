@@ -1,3 +1,30 @@
+config OP_M3_PW_CONV2D_Q7
+	bool
+	default y
+config OP_M3_DS_CONV2D_Q7
+	bool
+	default y
 config OP_M3_FULLY_CONNECTED_Q7
+	bool
+	default y
+config OP_M3_ADD_Q7
+	bool
+	default y
+config OP_DSP_CHW_PW_CONV2D_Q7
+	bool
+	default y
+config OP_DSP_HWC_PW_CONV2D_Q7
+	bool
+	default y
+config OP_DSP_HWC_PW_CONV2D_Q7_FAST
+	bool
+	default y
+config OP_DSP_CHW_3X3_CONV2D_STRIDE2_PAD0_RELU
+	bool
+	default y
+config OP_DSP_DS_CHW_3X3_CONV2D_STRIDE2_PAD0_RELU
+	bool
+	default y
+config OP_DSP_DS_CHW_3X3_CONV2D_STRIDE1_PAD0_RELU
 	bool
 	default y

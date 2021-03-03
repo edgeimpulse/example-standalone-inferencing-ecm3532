@@ -377,6 +377,7 @@ ExecStatus  __attribute__((optimize("O3"))) ExecAllocMem(ExecOperand_t  *p, void
     ExecStatus status = EXEC_STATUS_OK;
     struct privateInfo *privinfo ;
     int8_t * base =( int8_t*) baseAddr; ;
+    // ecm35xx_printf("Mem free: %d needed: %d\r\n", xPortGetFreeHeapSize(), sizeof (struct privateInfo ));
     // first allocate the private structure
     p->privInfo = ( struct privateInfo  * ) pvPortMalloc(sizeof (struct privateInfo ));
     if (  p->privInfo)
