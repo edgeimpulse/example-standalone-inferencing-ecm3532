@@ -6,8 +6,6 @@ set(APP ${base_name})
 add_definitions(-DECM3532 -DEI_CLASSIFIER_ALLOCATION_STATIC -DUSE_PDM_MIC -DUSE_BLE -DUSE_SPIFLASH -DFLASH -DPROJ_NAME=\"edge_impulse_ingestion\" -DEI_SENSOR_AQ_STREAM=FILE -DEIDSP_USE_CMSIS_DSP=1 -DEIDSP_QUANTIZE_FILTERBANK=0 -DARM_MATH_LOOPUNROL)
 
 include_directories (../../Thirdparty/edge_impulse/)
-include_directories (../../Thirdparty/edge_impulse/ingestion-sdk-platform/eta-compute)
-include_directories (../../Thirdparty/edge_impulse/repl)
 include_directories (../../Thirdparty/edge_impulse/edge-impulse-sdk/CMSIS/DSP/Include)
 include_directories (../../Thirdparty/edge_impulse/edge-impulse-sdk/CMSIS/Core/Include)
 include_directories (../../Platform/ECM3532/M3/hw/hal/common/include)

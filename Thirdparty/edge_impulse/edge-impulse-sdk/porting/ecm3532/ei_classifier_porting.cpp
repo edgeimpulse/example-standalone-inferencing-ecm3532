@@ -25,7 +25,6 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
-// #include "ei_device_eta_ecm3532.h"
 #include "eta_bsp.h"
 #include "FreeRTOS.h"
 

@@ -95,6 +95,6 @@ int main(void)
 	xTaskCreate(vInferTask, "standalone inference", TASK_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY + 3, NULL);
 
-    	/* Start the scheduler. */
+    /* Start the scheduler. */
 	vTaskStartScheduler();	
 }
