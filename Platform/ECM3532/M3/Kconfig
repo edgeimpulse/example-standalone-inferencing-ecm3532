@@ -163,7 +163,7 @@ choice DSP_FW_LOC
         bool "DSP in RAM"
 endchoice
 config DSP_FW_LENGTH
-    hex
+    hex "DSP Length"
     default 0x16000
 
 choice PBUF_LOC
@@ -177,7 +177,7 @@ endchoice
 config PBUF_LENGTH
     hex
     depends on (BOOTLOADER_APP && !STANDALONE_APP) && !BOOTLOADER
-    default 0x20000 if BOOTLOADER_APP  
+    default 0x0 if BOOTLOADER_APP
 
 config DSP_FILE_SECTION
     string
