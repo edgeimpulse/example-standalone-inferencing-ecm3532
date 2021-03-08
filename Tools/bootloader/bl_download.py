@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import sys	
+import sys
 import binascii
 import os
 import struct
 import serial.tools.list_ports
 import glob
 import inquirer
+import platform
 
 file_loc     = sys.argv[1]
 bl_update = sys.argv[2]
@@ -77,32 +78,44 @@ binFileJustNames.sort()
 
 chosenBinFiles = []
 
+name = ""
+
 if len(binFileNames) != 0:
     if bl_update == "1":
         chosenBinFiles.append("02_m3_fw.bin")
     else :
-        questions = [
-          inquirer.Checkbox('interests',
-                            message="Use UP/DOWN keys and use SPACEBAR to select or deselect the files to be downloaded",
-                            choices=binFileJustNames,
-                            ),
-        ]
-        answers = inquirer.prompt(questions)
-        chosenBinFiles = answers['interests']
+        # questions = [
+        #   inquirer.Checkbox('interests',
+        #                     message="Use UP/DOWN keys and use SPACEBAR to select or deselect the files to be downloaded",
+        #                     choices=binFileJustNames,
+        #                     ),
+        # ]
+        # answers = inquirer.prompt(questions)
+        # chosenBinFiles = answers['interests']
 
-        print(chosenBinFiles)
-    name = ""
+        # print(chosenBinFiles)
+        for x in range(len(binFileJustNames)):
+            name = name + " " + filePath + "/" +binFileJustNames[x]
+    # name = ""
 
-    for x in range(len(chosenBinFiles)): 
-        name = name + " " + filePath + "/" +chosenBinFiles[x]
+    # for x in range(len(chosenBinFiles)):
+    #     name = name + " " + filePath + "/" +chosenBinFiles[x]
         # print("name ", name)
 
     # print("Files downloaded : ", name)
 
-    if bl_update == "1":
-        os.system("sudo stty -F "+dev+" 460800 cs8 -parenb -cstopb crtscts && echo \"****************************************\" && echo \"**** Wait for 10 seconds for update ****\" && echo \"****************************************\" && echo \"\" &&  sb -b --ymodem " +partitionFileName+" "+name+ " > "+dev+" < "+dev)
-    else:
-        os.system("sudo stty -F "+dev+" 460800 cs8 -parenb -cstopb crtscts && echo \"****************************************\" && echo \"**** Press and Release POR_N switch ****\" && echo \"****************************************\" && echo \"\" &&  sb -b --ymodem " +partitionFileName+" "+name+ " > "+dev+" < "+dev)
+    stty_command = "sudo stty -F "+dev+" 460800 cs8 -parenb -cstopb crtscts"
+    if platform.system() == 'Darwin':
+        stty_command = "stty -f "+dev+" 460800 cs8 -parenb -cstopb crtscts"
 
-else : 
+    sb_command = "sb"
+    if platform.system() == 'Darwin':
+        sb_command = "lsz"
+
+    if bl_update == "1":
+        os.system(stty_command + " && echo \"****************************************\" && echo \"**** Wait for 10 seconds for update ****\" && echo \"****************************************\" && echo \"\" &&  " + sb_command + " -b --ymodem " +partitionFileName+" "+name+ " > "+dev+" < "+dev)
+    else:
+        os.system(stty_command + " && echo \"****************************************\" && echo \"**** Press and Release POR_N switch ****\" && echo \"****************************************\" && echo \"\" &&  " + sb_command + " -b --ymodem " +partitionFileName+" "+name+ " > "+dev+" < "+dev)
+
+else :
     print("No bin file found")
