@@ -1,6 +1,6 @@
 file(GLOB RTOS "${CMAKE_CURRENT_LIST_DIR}/Source/*.c")
 file(GLOB RTOS_PORT "${CMAKE_CURRENT_LIST_DIR}/Source/portable/GCC/ARM_CM3/*.c")
-file(GLOB RTOS_MEM_MANG "${CMAKE_CURRENT_LIST_DIR}/Source/portable/MemMang/heap_4.c")
+file(GLOB RTOS_MEM_MANG "${CMAKE_CURRENT_LIST_DIR}/Source/portable/MemMang/heap_3.c")
 set(getsoc "CONFIG_SOC")
 CONFIGVAL(soc ${getsoc})
 foreach (rtossrc ${RTOS})

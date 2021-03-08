@@ -287,25 +287,24 @@ CONFIG_RPC=y
 # DSP FW Configuations
 #
 CONFIG_DSP_UART=y
-CONFIG_DSP_EXECUTOR_FW=y
-# CONFIG_DSP_DEFAULT_FW is not set
-CONFIG_PRE_BUILD_DSP_FW_RELOCATED="dsp_fw_executor_relocated.bin"
-CONFIG_PRE_BUILD_DSP_FW="dsp_fw_executor.bin"
-CONFIG_DSP_EXECUTOR=y
+CONFIG_DSP_DEFAULT_FW=y
+CONFIG_PRE_BUILD_DSP_FW_RELOCATED="dsp_fw_relocated.bin"
+CONFIG_PRE_BUILD_DSP_FW="dsp_fw.bin"
+# CONFIG_DSP_EXECUTOR is not set
 # CONFIG_DSP_HELLO_WORLD is not set
 # CONFIG_DSP_SENSOR is not set
-# CONFIG_DSP_PDM is not set
+CONFIG_DSP_PDM=y
 # CONFIG_DSP_I2C is not set
 # CONFIG_DSP_KERNEL is not set
 # CONFIG_DSP_TIMER is not set
 # CONFIG_DSP_MALLOC is not set
-CONFIG_BUILD_DSP_FW="executor_test"
+CONFIG_BUILD_DSP_FW="pdm_test"
 # end of DSP FW Configuations
 
 #
 # Executor library
 #
-CONFIG_EXECUTOR=y
+# CONFIG_EXECUTOR is not set
 # end of Executor library
 
 #
@@ -429,7 +428,7 @@ CONFIG_CLI=y
 CONFIG_SYSTICK_ON_REF_CLK=y
 CONFIG_TICK_RATE_HZ=500
 CONFIG_SYSTICK_REF_CLOCK=1024
-CONFIG_HEAP_SIZE=40000
+CONFIG_HEAP_SIZE=0
 
 #
 # Check free heap using FreeHeap command before changing it

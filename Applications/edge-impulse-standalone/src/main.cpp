@@ -13,11 +13,9 @@
 
 extern "C" {
 #include "eta_bsp.h"
-#include "executor_public.h"
 }
 
 #define TASK_STACK_SIZE  2048
-#define APP_LED (CONFIG_APP_LED_GPIO)
 
 /** UART used for edge impulse communication */
 tUart etaUart;
@@ -39,10 +37,6 @@ int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
 
 static void vInferTask(void *pvParameters)
 {
-
-// #if defined(EI_CLASSIFIER_COMPILED) && EI_CLASSIFIER_COMPILED == 1
-//     #error "This platform does not support the EON compiler. Export with EON compiler disabled."
-// #endif
 
     while (1) {
         ei_printf("Edge Impulse standalone inferencing (Eta Compute ECM3532)\n");
@@ -98,11 +92,7 @@ int main(void)
     EtaCspUartInit(&etaUart, (tUartNum)CONFIG_DEBUG_UART, eUartBaud115200, eUartFlowControlNone);
     EtaCspTimerDelayMs(500);
 
-#if (EI_CLASSIFIER_INFERENCING_ENGINE == EI_CLASSIFIER_TENSAIFLOW)
-	ExecInit();
-#endif
-
-	xTaskCreate(vInferTask, "Executor_Compiler_Test", TASK_STACK_SIZE,
+	xTaskCreate(vInferTask, "standalone inference", TASK_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY + 3, NULL);
 
     	/* Start the scheduler. */
