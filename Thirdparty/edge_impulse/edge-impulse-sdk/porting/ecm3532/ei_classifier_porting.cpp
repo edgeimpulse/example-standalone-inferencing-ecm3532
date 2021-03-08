@@ -50,10 +50,18 @@ uint64_t ei_read_timer_us() {
 }
 
 __attribute__((weak)) void ei_printf(const char *format, ...) {
-    va_list myargs;
-    va_start(myargs, format);
-    vprintf(format, myargs);
-    va_end(myargs);
+    
+    extern tUart etaUart;
+    char print_buf[1024] = {0};
+
+    va_list args;
+    va_start(args, format);
+    int r = vsnprintf(print_buf, sizeof(print_buf), format, args);
+    va_end(args);
+
+    if (r > 0) {
+        EtaCspUartPuts(&etaUart, print_buf);
+    }
 }
 
 __attribute__((weak)) void ei_printf_float(float f) {
