@@ -122,7 +122,7 @@ if bootloader_type == 0 :
         os.system("eta-flash-tool --firmware-path " + update_app)
         print("\n\rApplying bootloader update...\n\r")
         if(platform.system() == "Windows"):
-            os.system("python3 " + bl_download + " " + port + " " + frag_1 + " " + frag_2)
+            os.system("python " + bl_download + " " + port + " " + frag_1 + " " + frag_2)
         else:
             os.system("python3 " + bl_download + " " + port + " " + frag_1 + " " + frag_2)
         print("Bootloader updated")

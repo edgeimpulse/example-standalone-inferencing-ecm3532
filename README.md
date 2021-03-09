@@ -2,7 +2,6 @@
 
 This runs an exported impulse on the Eta Compute ECM3532 AI Sensor and AI Vision boards. See the documentation at [Running your impulse locally (ECM3532)](https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532).
 
-
 ## Building and flashing the project
 
 1. Deploy your project as a C++ Library and add the *folders* from the export to `Thirdparty/edge_impulse`.
