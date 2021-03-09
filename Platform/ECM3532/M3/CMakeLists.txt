@@ -112,7 +112,7 @@ if(EXISTS "${PROJ_DIR}/../../../Thirdparty/eta_ai_bsp")
     SET_TARGET_PROPERTIES(eta_ai_bsp PROPERTIES LINKER_LANGUAGE C)
     SET_TARGET_PROPERTIES(eta_ai_bsp PROPERTIES COMPILE_FLAGS "-O3")
     target_link_libraries(eta_ai_bsp LINK_PUBLIC ${csplib} ${hallib})
-    set(eta_ai_bsplib eta_ai_bsp)    
+    set(eta_ai_bsplib eta_ai_bsp)
 else ()
     find_library(eta_ai_bsplib eta_ai_bsp HINTS ${PROJ_DIR}/pre_built)
     add_library(eta_ai_bsp STATIC IMPORTED)
@@ -310,7 +310,7 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
     #-Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
         COMMAND ${CMAKE_OBJCOPY}
 -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
-        COMMAND ${CMAKE_OBJDUMP} 
+        COMMAND ${CMAKE_OBJDUMP}
 -x -S -d ${PROJECT_NAME}.elf> ${LIST_FILE}
         COMMENT "Building ${HEX_FILE}
 \nBuilding ${BIN_FILE} Building ${LIST_FILE}"
@@ -435,10 +435,25 @@ GETCONFIG(blen "BOOTLOADER")
 string(COMPARE EQUAL "${blen}" y _blen)
 
 if (_blapp)
+
+if (APPLE)
 add_custom_target(flash_bl
-        COMMAND
-        sh ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/app_flash.sh ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/../DSP/app/${dsp_fw_loc}/build/dsp_fw.bin
-        )
+    COMMAND
+    sh ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/flashtools/flash_mac.sh
+)
+elseif (UNIX)
+add_custom_target(flash_bl
+    COMMAND
+    sh ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/flashtools/flash_linux.sh
+)
+elseif (WIN32)
+add_custom_target(flash_bl
+    COMMAND
+    ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/flashtools/flash_windows.bat
+)
+else ()
+    message( FATAL_ERROR "Could not find platform (neither APPLE, UNIX or WIN32) - cannot flash" )
+endif()
 
 add_custom_target(flash_ses_bl
         COMMAND
@@ -452,7 +467,7 @@ add_custom_target(bl_update
         COMMAND
         eta-flash-tool --firmware-path ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/bootloader_update_app.bin
         COMMAND
-        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/genPartitionTable.py ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map 
+        ${Python_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/../../../Tools/bootloader/genPartitionTable.py ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map
         COMMAND
         cp bootloader.bin 02_m3_fw.bin
         COMMAND

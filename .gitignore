@@ -54,3 +54,12 @@ dkms.conf
 bin/
 build/
 docker_build/
+
+Thirdparty/edge_impulse/edge-impulse-sdk/
+Thirdparty/edge_impulse/model-parameters/
+Thirdparty/edge_impulse/tflite-model/
+Thirdparty/edge_impulse/tensaiflow-model/
+Platform/ECM3532/M3/appKconfig
+Applications/edge-impulse-standalone/config.h
+Applications/edge-impulse-standalone/edge-impulse-standalone.ld
+*.pyc
