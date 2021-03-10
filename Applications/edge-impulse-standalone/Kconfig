@@ -1,0 +1,6 @@
+menu "Edge Impulse standalone project"
+comment "Run impulse locally on Eta Compute target"
+
+orsource "Kernel_config"
+
+endmenu

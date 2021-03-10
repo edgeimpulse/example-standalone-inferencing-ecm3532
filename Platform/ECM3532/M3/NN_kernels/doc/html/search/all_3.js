@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['eta_5fadd_5fq7_13',['eta_add_q7',['../eta__nnfunctions_8h.html#a0b83229650f62a182f70d6f8ff44f76b',1,'eta_nnfunctions.h']]],
+  ['eta_5favepool2d_5fq7_14',['eta_avepool2d_q7',['../eta__nnfunctions_8h.html#a188d820d8cebb7a81f8663ef6b32f6ea',1,'eta_nnfunctions.h']]],
+  ['eta_5fconcat_5fheight_5fq7_15',['eta_concat_height_q7',['../eta__nnfunctions_8h.html#ab418fc936b4aa4906b258e5ae00652ec',1,'eta_nnfunctions.h']]],
+  ['eta_5fconcat_5fq7_16',['eta_concat_q7',['../eta__nnfunctions_8h.html#a6cf1bcfb5af3b7837a930ae3c873a2bb',1,'eta_nnfunctions.h']]],
+  ['eta_5fconv2d_5fq7_17',['eta_conv2d_q7',['../eta__nnfunctions_8h.html#a710c8b21945509b410e869c843a4252f',1,'eta_nnfunctions.h']]],
+  ['eta_5fds_5fconv2d_5fdepth1_5fq7_18',['eta_ds_conv2d_depth1_q7',['../eta__nnfunctions_8h.html#a75536c412d7056c172eac6426ba69f7a',1,'eta_nnfunctions.h']]],
+  ['eta_5fds_5fconv2d_5fq7_19',['eta_ds_conv2d_q7',['../eta__nnfunctions_8h.html#a6b33ad8a32d692a188138627fba8d016',1,'eta_nnfunctions.h']]],
+  ['eta_5fds_5fconv2d_5fsb_5fq7_20',['eta_ds_conv2d_sb_q7',['../eta__nnfunctions_8h.html#a3127d2a93060ff6cc2d87b377595d2a0',1,'eta_nnfunctions.h']]],
+  ['eta_5ffully_5fconnected_5fq7_21',['eta_fully_connected_q7',['../eta__nnfunctions_8h.html#a58f09823ba49d97d72cc9472cde357c2',1,'eta_nnfunctions.h']]],
+  ['eta_5fgen_5ferr_22',['ETA_GEN_ERR',['../eta__types_8h.html#a47db8a75b9a7d8151dab521c34295268a46b7bfbbc7e08fedff5ce19445cb8b75',1,'eta_types.h']]],
+  ['eta_5fmaxpool_5fq7_23',['eta_maxpool_q7',['../eta__nnfunctions_8h.html#a92442e71866859339fdacee6ef3d35df',1,'eta_nnfunctions.h']]],
+  ['eta_5fnn_5ftables_2eh_24',['eta_nn_tables.h',['../eta__nn__tables_8h.html',1,'']]],
+  ['eta_5fnnfunctions_2eh_25',['eta_nnfunctions.h',['../eta__nnfunctions_8h.html',1,'']]],
+  ['eta_5fpw_5fconv2d_5fq7_26',['eta_pw_conv2d_q7',['../eta__nnfunctions_8h.html#ad646e297392738f4dce05a54fcf1b98d',1,'eta_nnfunctions.h']]],
+  ['eta_5frc_27',['eta_rc',['../eta__types_8h.html#a47db8a75b9a7d8151dab521c34295268',1,'eta_types.h']]],
+  ['eta_5frelu6_5fq7_28',['eta_relu6_q7',['../eta__nnfunctions_8h.html#aa4ba2b570c788e5f1e8ec08b953e0b04',1,'eta_nnfunctions.h']]],
+  ['eta_5frelu_5fq7_29',['eta_relu_q7',['../eta__nnfunctions_8h.html#a897b9c66653840a9df1838fbb4a4547d',1,'eta_nnfunctions.h']]],
+  ['eta_5fsigmoid_5fq15_30',['eta_sigmoid_q15',['../eta__nnfunctions_8h.html#a6a4e9feb12cbd2da8355d55e607a01a3',1,'eta_nnfunctions.h']]],
+  ['eta_5fsigmoid_5fq7_31',['eta_sigmoid_q7',['../eta__nnfunctions_8h.html#ad46afa961d5ae4c0da29f43412bb6120',1,'eta_nnfunctions.h']]],
+  ['eta_5fsoftmax_5fq15_32',['eta_softmax_q15',['../eta__nnfunctions_8h.html#a9cdc7bbf180022d2661b4573064feeaa',1,'eta_nnfunctions.h']]],
+  ['eta_5fsoftmax_5fq7_33',['eta_softmax_q7',['../eta__nnfunctions_8h.html#aa72cf21ac8a4d2d0a3fcac066fa73f8a',1,'eta_nnfunctions.h']]],
+  ['eta_5fstatus_5fok_34',['ETA_STATUS_OK',['../eta__types_8h.html#a47db8a75b9a7d8151dab521c34295268a755e82fc49ed318d429c41326aa0d733',1,'eta_types.h']]],
+  ['eta_5ftanh_5fq15_35',['eta_tanh_q15',['../eta__nnfunctions_8h.html#a2cdd9ebceccdf24c1247accaf8231aed',1,'eta_nnfunctions.h']]],
+  ['eta_5ftanh_5fq7_36',['eta_tanh_q7',['../eta__nnfunctions_8h.html#a14e71799fa0a7eaabf6c665f3ea26688',1,'eta_nnfunctions.h']]],
+  ['eta_5ftypes_2eh_37',['eta_types.h',['../eta__types_8h.html',1,'']]]
+];
