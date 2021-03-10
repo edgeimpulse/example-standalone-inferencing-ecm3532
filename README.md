@@ -2,13 +2,35 @@
 
 This runs an exported impulse on the Eta Compute ECM3532 AI Sensor and AI Vision boards. See the documentation at [Running your impulse locally (ECM3532)](https://docs.edgeimpulse.com/docs/running-your-impulse-ecm3532).
 
+## Requirements
+
+### Hardware
+
+* [Eta Compute ECM3532 AI Sensor](https://etacompute.com/products/) or [Eta Compute ECM3532 AI Vision](https://etacompute.com/products/) development board.
+* [Sparkfun FTDI Basic Breakout](https://www.sparkfun.com/products/9873) breakout board, or a similar FTDI to USB board that supports 3.3V - the development boards are not 5V tolerant.
+
+### Software
+
+* [Node.js 12](https://nodejs.org/en/download/) or higher.
+* [Python 3](https://www.python.org/download/releases/3.0/).
+* [CMake](https://cmake.org) version 3.12.1 or higher.
+* [GNU Make](https://www.gnu.org/software/make/).
+* [GNU ARM Embedded Toolchain 8-2018-q4-major](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) - make sure `arm-none-eabi-gcc` is in your PATH.
+* [Edge Impulse CLI](https://docs.edgeimpulse.com/docs/cli-installation).
+
+    You can install this via npm:
+
+    ```
+    $ npm install edge-impulse-cli@latest -g
+    ```
+
 ## Building and flashing the project
 
 1. Deploy your project as a C++ Library and add the *folders* from the export to `Thirdparty/edge_impulse`.
 
     > **Note:** Do not replace the `CMakeLists.txt` file!
 
-1. Build the Edge Impulse firmware using ARM GCC 8.2.1:
+1. Build the Edge Impulse firmware:
 
     **AI Sensor board**
 
