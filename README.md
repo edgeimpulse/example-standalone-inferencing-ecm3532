@@ -90,4 +90,4 @@ The available configurations are:
 
 ## License
 
-This repository contains code from the Eta Compute TensaiFlow SDK Alpa v2-0.2, which is licensed under the Apache 2.0 license.
+This repository contains code from the Eta Compute TensaiFlow SDK Alpa v2-0.2, which is listed in [LICENSE-TENSAIFLOW.docx]. The application code is licensed under the Apache 2.0 license (see LICENSE-APPLICATION).
